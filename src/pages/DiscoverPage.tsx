@@ -49,37 +49,37 @@ export default function DiscoverPage() {
   return (
     <div className="layout">
       <h1>{t("discover.title")}</h1>
-      <p className="muted">
+      <p className="subtle-hint">
         {t("discover.subtitle")}{" "}
         <Link to="/onboarding">{t("discover.editProfile")}</Link>
       </p>
       {err && <p className="err">{err}</p>}
       {list.map((p) => (
-        <div key={p.user_id} className="card">
+        <div key={p.user_id} className="card profile-card">
           <div className="row">
             {p.primary_photo_url && (
               <img
+                className="profile-card__avatar"
                 src={p.primary_photo_url}
                 alt=""
                 width={72}
                 height={72}
-                style={{ borderRadius: 8, objectFit: "cover" }}
               />
             )}
-            <div>
+            <div className="profile-card__meta">
               <strong>{p.display_name}</strong>{" "}
               {p.la_founding_member && <span className="muted">· {t("discover.laFounding")}</span>}
               <div className="muted">
                 {typeof p.distance_km === "number" ? t("discover.kmAway", { km: p.distance_km }) : ""}
                 {p.cityVisible === false && ` · ${t("discover.pinHidden")}`}
               </div>
-              <div style={{ fontSize: "0.9rem" }}>{p.intent}</div>
-              <div className="muted" style={{ fontSize: "0.85rem" }}>
+              <div className="profile-card__intent">{p.intent}</div>
+              <div className="muted profile-card__stance">
                 {t("discover.paperwork")}: {t(`sponsorship.${p.sponsorship_stance}`)}
               </div>
             </div>
           </div>
-          {p.bio && <p>{p.bio}</p>}
+          {p.bio && <p className="profile-card__bio">{p.bio}</p>}
           <button
             type="button"
             className="btn secondary"

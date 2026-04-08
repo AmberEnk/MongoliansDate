@@ -17,7 +17,7 @@ export default function LegalPage() {
   return (
     <div className="layout">
       <h1>{title}</h1>
-      <div className="card" dangerouslySetInnerHTML={{ __html: html }} />
+      <div className="card legal-body" dangerouslySetInnerHTML={{ __html: html }} />
     </div>
   );
 }

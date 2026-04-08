@@ -38,24 +38,25 @@ export default function ChatPage() {
 
   return (
     <div className="layout">
-      <p>
+      <p className="chat-back">
         <Link to="/discover">{t("chat.backDiscover")}</Link>
       </p>
       <h1>{t("chat.title")}</h1>
       {err && <p className="err">{err}</p>}
-      <div className="card" style={{ minHeight: 200 }}>
+      <div className="card chat-thread">
         {messages.map((m) => (
           <p key={m.id}>
             <span className="muted">{store.displayNameForUserId(m.sender_id)}</span> {m.body}
           </p>
         ))}
       </div>
-      <form onSubmit={send} className="row" style={{ marginTop: "0.5rem" }}>
+      <form onSubmit={send} className="row chat-form">
         <input
+          type="text"
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder={t("chat.placeholder")}
-          style={{ flex: 1, minWidth: 0 }}
+          autoComplete="off"
         />
         <button type="submit" className="btn">
           {t("chat.send")}

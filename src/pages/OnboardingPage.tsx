@@ -110,9 +110,7 @@ export default function OnboardingPage() {
           {t("onboarding.sponsorshipNotes")}
           <textarea value={detail} onChange={(e) => setDetail(e.target.value)} rows={2} />
         </label>
-        <p className="muted" style={{ fontSize: "0.8rem" }}>
-          {t("onboarding.legalNote")}
-        </p>
+        <p className="legal-note">{t("onboarding.legalNote")}</p>
         {msg && <p>{msg}</p>}
         <button type="submit" className="btn">
           {t("onboarding.save")}

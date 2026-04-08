@@ -34,7 +34,7 @@ export default function RegisterPage() {
   return (
     <div className="layout">
       <h1>{t("register.title")}</h1>
-      <p className="muted">{t("register.subtitle")}</p>
+      <p className="subtle-hint">{t("register.subtitle")}</p>
       <form onSubmit={onSubmit} className="card">
         <label>
           {t("common.email")}
