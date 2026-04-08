@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "title": "Mongolians Date"
+  },
+  "common": {
+    "loading": "Loading…",
+    "continue": "Continue",
+    "email": "Email",
+    "password": "Password",
+    "language": "Language"
+  },
+  "home": {
+    "tagline": "Dating for Mongolian communities in LA and beyond — real accounts, mutual matches, and safe reporting.",
+    "discover": "Discover",
+    "profile": "Profile",
+    "join": "Join",
+    "signIn": "Sign in",
+    "debugLogin": "Debug: fake login",
+    "communityGuidelines": "Community guidelines",
+    "privacy": "Privacy",
+    "terms": "Terms"
+  },
+  "login": {
+    "title": "Sign in",
+    "createAccount": "Create account"
+  },
+  "register": {
+    "title": "Create account",
+    "subtitle": "Must be 18+. Default location starts in the Los Angeles metro.",
+    "passwordHint": "Password (10+ chars)",
+    "displayName": "Display name",
+    "birthdate": "Birthdate",
+    "laFounding": "LA founding member badge (MVP)",
+    "signUp": "Sign up",
+    "alreadyHave": "Already have an account",
+    "verifyEmailDev": "Account created. You can sign in now — email verification is skipped in this local demo."
+  },
+  "verify": {
+    "title": "Email verification",
+    "missingToken": "Missing token.",
+    "verifying": "Verifying…",
+    "verified": "Verified.",
+    "signInLink": "Sign in",
+    "invalid": "Link invalid or expired."
+  },
+  "onboarding": {
+    "title": "Your profile",
+    "bio": "Bio",
+    "intent": "Intent",
+    "heritage": "Heritage tags (comma-separated)",
+    "sponsorship": "Sponsorship / paperwork (self-report)",
+    "sponsorshipNotes": "Sponsorship notes",
+    "legalNote": "Not legal advice. Confirm immigration questions with a licensed attorney.",
+    "save": "Save & finish onboarding",
+    "photos": "Photos",
+    "openDiscover": "Open discover →",
+    "savedMsg": "Profile saved. Add a photo below, then open discovery.",
+    "photoFail": "Could not read that image — try another file.",
+    "photoOk": "Photo uploaded.",
+    "saveFail": "Save failed"
+  },
+  "sponsorship": {
+    "can_sponsor": "Open to spouse/partner paperwork",
+    "open_to_discuss": "Open to discussing later",
+    "varies": "Depends — will explain with trust",
+    "not_applicable": "Not in a position to sponsor",
+    "prefer_not_say": "Prefer not to say on profile"
+  },
+  "discover": {
+    "title": "Discover near LA",
+    "subtitle": "Grid view · mutual match opens chat (stored in this browser only).",
+    "editProfile": "Edit profile",
+    "loadFail": "Could not load discovery",
+    "likeFail": "Like failed",
+    "laFounding": "LA founding",
+    "kmAway": "{{km}} km away",
+    "pinHidden": "Exact map pin hidden",
+    "paperwork": "Paperwork stance",
+    "like": "Like",
+    "empty": "No profiles match filters yet."
+  },
+  "chat": {
+    "backDiscover": "← Discover",
+    "title": "Chat",
+    "placeholder": "Message",
+    "send": "Send",
+    "loadFail": "Cannot load messages",
+    "sendFail": "Send failed"
+  },
+  "legal": {
+    "terms": {
+      "title": "Terms of Service",
+      "body": "<p>Placeholder terms. Replace with counsel-reviewed Terms before production.</p>"
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "body": "<p>Placeholder privacy notice (CCPA-conscious draft to be provided by counsel). Describe data collected, purposes, retention, sale/sharing, and how Californians exercise rights.</p>"
+    },
+    "guidelines": {
+      "title": "Community guidelines",
+      "body": "<p>Be respectful. No harassment, scams, or hate. Report concerns. Moderation may suspend accounts that endanger the community. Immigration paperwork discussions must stay lawful and honest; this app does not provide legal advice.</p>"
+    },
+    "data-export": {
+      "title": "Data export",
+      "body": "<p>In this local demo, all data lives in your browser storage. Clear site data or use another browser profile to reset.</p>"
+    }
+  },
+  "lang": {
+    "en": "English",
+    "mn": "Монгол (кирилл)",
+    "mnMong": "ᠮᠣᠩᠭᠣᠯ ᠪᠢᠴᠢᠭ (ᠳᠣᠲᠣᠷ᠎ᠠ ᠮᠣᠩᠭᠣᠯ)"
+  }
+}
