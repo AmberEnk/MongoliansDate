@@ -26,7 +26,7 @@ export default function HomePage() {
         <section className="landing-hero" aria-labelledby="landing-hero-title">
           <p className="landing-hero__eyebrow">{t("landing.heroEyebrow")}</p>
           <h1 id="landing-hero-title" className="landing-hero__headline">
-            {t("landing.heroHeadline")}
+            <span className="landing-hero__headline-en">{t("landing.heroHeadline")}</span>
             <span className="landing-hero__headline-mn" lang="mn">
               {t("landing.heroHeadlineMn")}
             </span>
