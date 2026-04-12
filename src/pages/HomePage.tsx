@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import WaitlistSection from "../components/WaitlistSection";
+import LandingVisualSection from "../components/LandingVisualSection";
 
 export default function HomePage() {
   const { loggedIn, debugLogin } = useAuth();
@@ -14,6 +15,7 @@ export default function HomePage() {
       </a>
 
       <nav className="landing-subnav" aria-label="Page sections">
+        <a href="#visuals">{t("landing.navVisuals")}</a>
         <a href="#community">{t("landing.navCommunity")}</a>
         <a href="#problem">{t("landing.navProblem")}</a>
         <a href="#paperwork">{t("landing.navPaperwork")}</a>
@@ -67,6 +69,8 @@ export default function HomePage() {
             )}
           </div>
         </section>
+
+        <LandingVisualSection />
 
         <section id="community" className="landing-section">
           <h2 className="landing-section__title">{t("landing.communityTitle")}</h2>
