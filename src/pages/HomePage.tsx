@@ -26,6 +26,16 @@ export default function HomePage() {
 
       <main id="main" className="landing-main" tabIndex={-1}>
         <section className="landing-hero" aria-labelledby="landing-hero-title">
+          <div className="landing-hero__brand" aria-hidden="true">
+            <img
+              className="landing-hero__brand-img"
+              src="/brand-logo.png"
+              alt=""
+              width={512}
+              height={512}
+              decoding="async"
+            />
+          </div>
           <p className="landing-hero__eyebrow">{t("landing.heroEyebrow")}</p>
           <h1 id="landing-hero-title" className="landing-hero__headline">
             <span className="landing-hero__headline-en">{t("landing.heroHeadline")}</span>

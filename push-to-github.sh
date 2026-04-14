@@ -18,7 +18,7 @@ git add -A
 if git diff --cached --quiet; then
   echo "No changes to commit."
 else
-  git commit -m "Initial commit: Mongolians Date local demo"
+  git commit -m "Initial commit: Uchral local demo"
 fi
 
 if git remote get-url origin >/dev/null 2>&1; then

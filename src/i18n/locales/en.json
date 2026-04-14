@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Mongolians Date"
+    "title": "Uchral"
   },
   "common": {
     "loading": "Loading…",
@@ -118,7 +118,7 @@
     "heroEyebrow": "Mongolia, Inner Mongolia, diaspora & mixed heritage",
     "heroHeadline": "Finally find Mongolians near you—or across the world",
     "heroHeadlineMn": "Дэлхий даяарх монгол түмэнтэй түүнээс ойрхон байдлаар танилцана уу",
-    "heroLede": "It's oddly hard to bump into other Mongolians even in big cities. Mongolians Date is for ethnic Mongolians and Mongolian-related identities—whether you're Khalkha, Southern Mongol / Inner Mongolian, Buryat / Oirat / Kalmyk ties, mixed heritage, or raised in the diaspora—and want relationships with people who get that background.",
+    "heroLede": "It's oddly hard to bump into other Mongolians even in big cities. Uchral is for ethnic Mongolians and Mongolian-related identities—whether you're Khalkha, Southern Mongol / Inner Mongolian, Buryat / Oirat / Kalmyk ties, mixed heritage, or raised in the diaspora—and want relationships with people who get that background.",
     "heroCtaPrototype": "Try the prototype",
     "heroCtaWaitlist": "Join waitlist",
     "communityTitle": "Who this is for",
@@ -131,7 +131,7 @@
     "problemIntro": "Dating apps are huge—but filters can't search for \"understands my folks,\" \"will visit the aunts with me,\" or \"speaks the language I grew up with.\" Distance makes it worse: you might be one of a handful of Mongolians in your city. We foreground location on every profile so you can see where someone actually lives (or is based long term) before you invest emotion.",
     "paperworkTitle": "Paperwork & sponsorship—up front, not as a surprise",
     "paperworkIntro": "For many people, marriage isn't only romantic—it's also a practical immigration conversation. The prototype asks people to self-report whether they're open to spouse or partner paperwork down the road (including \"not in a position to sponsor,\" \"prefer to discuss later,\" or \"prefer not to say publicly\"). Nothing here is verified by a lawyer; it's a conversation starter so you're not discovering deal-breakers after months of chatting.",
-    "paperworkLegal": "Mongolians Date does not provide immigration advice. Laws differ by country and change often. Always confirm serious plans with a licensed attorney in the relevant jurisdiction.",
+    "paperworkLegal": "Uchral does not provide immigration advice. Laws differ by country and change often. Always confirm serious plans with a licensed attorney in the relevant jurisdiction.",
     "featuresTitle": "What you'd expect from a modern dating app",
     "featuresIntro": "The interactive demo mixes patterns people already know—so the product feels familiar even though the community is specific.",
     "feature1": "Swipe & grid — quick passes or browse everyone in filters",
@@ -170,7 +170,7 @@
     "visualAlt7": "Paris cityscape with the Eiffel Tower (illustrative stock photo)",
     "visualAlt8": "Aerial view of Ulaanbaatar with mountains behind the city",
     "visualAlt9": "Ulaanbaatar seen from a high viewpoint",
-    "siteFooter": "Mongolians Date — local prototype. Not a live dating service."
+    "siteFooter": "Uchral — local prototype. Not a live dating service."
   },
   "lang": {
     "en": "English",

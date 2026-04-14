@@ -485,7 +485,7 @@ textarea {
   margin: 0 0 0.75rem;
 }
 
-/* ——— Marketing landing (full Mongolians Date site) ——— */
+/* ——— Marketing landing (uchral.net) ——— */
 
 .skip-link {
   position: absolute;
@@ -550,24 +550,19 @@ textarea {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
-.landing-hero::before {
-  content: "♥";
-  display: block;
-  font-size: 1.35rem;
-  line-height: 1;
-  margin-bottom: 0.4rem;
-  color: var(--color-love);
-  filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.8));
+/* Hero logo: large focal point */
+.landing-hero__brand {
+  margin: 0 auto 1.35rem;
+  max-width: min(34rem, 96vw);
 }
 
-@supports (-webkit-background-clip: text) or (background-clip: text) {
-  .landing-hero::before {
-    background: linear-gradient(135deg, var(--color-love-light), var(--color-love-deep));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.6));
-  }
+.landing-hero__brand-img {
+  display: block;
+  width: 100%;
+  max-width: min(30rem, 92vw);
+  height: auto;
+  margin: 0 auto;
+  object-fit: contain;
 }
 
 .landing-hero__eyebrow {
