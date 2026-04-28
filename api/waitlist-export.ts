@@ -1,4 +1,4 @@
-import sql, { ensureWaitlistTable } from "./_db";
+import { ensureWaitlistTable, getSql } from "./_db";
 
 function escapeCsv(value: unknown): string {
   const v = value == null ? "" : String(value);
@@ -23,7 +23,8 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    await ensureWaitlistTable();
+    const sql = getSql();
+    await ensureWaitlistTable(sql);
 
     const rows = await sql`
       SELECT email, gender, country, city, age, created_at

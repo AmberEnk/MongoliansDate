@@ -1,17 +1,25 @@
 import postgres from "postgres";
 
-const connection = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+let sqlClient: postgres.Sql | null = null;
 
-if (!connection) {
-  throw new Error("Missing POSTGRES_URL (or DATABASE_URL) environment variable.");
+function getConnectionString() {
+  return process.env.POSTGRES_URL || process.env.DATABASE_URL || "";
 }
 
-const sql = postgres(connection, {
-  ssl: "require",
-  max: 5,
-});
+export function getSql() {
+  const connection = getConnectionString();
+  if (!connection) {
+    throw new Error("Missing POSTGRES_URL (or DATABASE_URL) environment variable.");
+  }
+  if (!sqlClient) {
+    sqlClient = postgres(connection, {
+      max: 5,
+    });
+  }
+  return sqlClient;
+}
 
-export async function ensureWaitlistTable() {
+export async function ensureWaitlistTable(sql: postgres.Sql) {
   await sql`
     CREATE TABLE IF NOT EXISTS waitlist_entries (
       id BIGSERIAL PRIMARY KEY,
@@ -24,5 +32,3 @@ export async function ensureWaitlistTable() {
     );
   `;
 }
-
-export default sql;

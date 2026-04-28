@@ -1,4 +1,4 @@
-import sql, { ensureWaitlistTable } from "./_db";
+import { ensureWaitlistTable, getSql } from "./_db";
 
 function send(res: any, status: number, body: Record<string, unknown>) {
   res.status(status).json(body);
@@ -11,7 +11,8 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    await ensureWaitlistTable();
+    const sql = getSql();
+    await ensureWaitlistTable(sql);
 
     const email = String(req.body?.email || "").trim().toLowerCase();
     const gender = String(req.body?.gender || "").trim().toLowerCase();
