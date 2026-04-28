@@ -23,14 +23,17 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const sql = getSql();
-    await ensureWaitlistTable(sql);
+    const db = getSql();
+    await ensureWaitlistTable(db);
 
-    const rows = await sql`
+    const result = await db.query(
+      `
       SELECT email, gender, country, city, age, created_at
       FROM waitlist_entries
       ORDER BY created_at DESC
-    `;
+      `
+    );
+    const rows = result.rows;
 
     const header = ["email", "gender", "country", "city", "age", "created_at"];
     const lines = [header.join(",")];

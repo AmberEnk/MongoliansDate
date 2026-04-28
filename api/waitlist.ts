@@ -11,8 +11,8 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const sql = getSql();
-    await ensureWaitlistTable(sql);
+    const db = getSql();
+    await ensureWaitlistTable(db);
 
     const email = String(req.body?.email || "").trim().toLowerCase();
     const gender = String(req.body?.gender || "").trim().toLowerCase();
@@ -33,10 +33,13 @@ export default async function handler(req: any, res: any) {
       return send(res, 400, { error: "Invalid age." });
     }
 
-    await sql`
+    await db.query(
+      `
       INSERT INTO waitlist_entries (email, gender, country, city, age)
-      VALUES (${email}, ${gender}, ${country || null}, ${city || null}, ${age})
-    `;
+      VALUES ($1, $2, $3, $4, $5)
+      `,
+      [email, gender, country || null, city || null, age]
+    );
 
     return send(res, 201, { ok: true });
   } catch (error: any) {
