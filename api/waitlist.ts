@@ -11,7 +11,7 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const db = getSql();
+    const db = await getSql();
     await ensureWaitlistTable(db);
 
     const email = String(req.body?.email || "").trim().toLowerCase();

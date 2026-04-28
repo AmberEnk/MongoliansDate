@@ -1,17 +1,16 @@
-import { Pool } from "pg";
-
-let pool: Pool | null = null;
+let pool: any = null;
 
 function getConnectionString() {
   return process.env.POSTGRES_URL || process.env.DATABASE_URL || "";
 }
 
-export function getSql() {
+export async function getSql() {
   const connection = getConnectionString();
   if (!connection) {
     throw new Error("Missing POSTGRES_URL (or DATABASE_URL) environment variable.");
   }
   if (!pool) {
+    const { Pool } = await import("pg");
     pool = new Pool({
       connectionString: connection,
       max: 5,
@@ -20,7 +19,7 @@ export function getSql() {
   return pool;
 }
 
-export async function ensureWaitlistTable(db: Pool) {
+export async function ensureWaitlistTable(db: any) {
   await db.query(`
     CREATE TABLE IF NOT EXISTS waitlist_entries (
       id BIGSERIAL PRIMARY KEY,
