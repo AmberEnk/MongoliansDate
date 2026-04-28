@@ -627,17 +627,8 @@ textarea {
   line-height: 1.45;
 }
 
-.landing-hero__lede {
-  margin: 0 auto 1.5rem;
-  max-width: 52ch;
-  font-size: 1.05rem;
-  color: var(--color-text-muted);
-  line-height: 1.65;
-  text-align: center;
-}
-
 .landing-hero__actions {
-  margin-top: 0.25rem;
+  margin-top: 0.75rem;
   justify-content: center;
   max-width: 52rem;
   margin-left: auto;

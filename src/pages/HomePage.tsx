@@ -16,10 +16,6 @@ export default function HomePage() {
 
       <nav className="landing-subnav" aria-label="Page sections">
         <a href="#visuals">{t("landing.navVisuals")}</a>
-        <a href="#community">{t("landing.navCommunity")}</a>
-        <a href="#problem">{t("landing.navProblem")}</a>
-        <a href="#paperwork">{t("landing.navPaperwork")}</a>
-        <a href="#features">{t("landing.navFeatures")}</a>
         <a href="#prototype">{t("landing.navPrototype")}</a>
         <a href="#waitlist">{t("landing.navWaitlist")}</a>
       </nav>
@@ -43,7 +39,6 @@ export default function HomePage() {
               {t("landing.heroHeadlineMn")}
             </span>
           </h1>
-          <p className="landing-hero__lede">{t("landing.heroLede")}</p>
 
           <div className="row landing-hero__actions">
             {loggedIn ? (
@@ -82,43 +77,8 @@ export default function HomePage() {
 
         <LandingVisualSection />
 
-        <section id="community" className="landing-section">
-          <h2 className="landing-section__title">{t("landing.communityTitle")}</h2>
-          <p className="landing-section__intro">{t("landing.communityIntro")}</p>
-          <ul className="landing-bullets">
-            <li>{t("landing.communityBullet1")}</li>
-            <li>{t("landing.communityBullet2")}</li>
-            <li>{t("landing.communityBullet3")}</li>
-            <li>{t("landing.communityBullet4")}</li>
-          </ul>
-        </section>
-
-        <section id="problem" className="landing-section landing-section--tint">
-          <h2 className="landing-section__title">{t("landing.problemTitle")}</h2>
-          <p className="landing-section__intro">{t("landing.problemIntro")}</p>
-        </section>
-
-        <section id="paperwork" className="landing-section">
-          <h2 className="landing-section__title">{t("landing.paperworkTitle")}</h2>
-          <p className="landing-section__intro">{t("landing.paperworkIntro")}</p>
-          <p className="landing-legal-callout">
-            <strong>Legal:</strong> {t("landing.paperworkLegal")}
-          </p>
-        </section>
-
-        <section id="features" className="landing-section landing-section--tint">
-          <h2 className="landing-section__title">{t("landing.featuresTitle")}</h2>
-          <p className="landing-section__intro">{t("landing.featuresIntro")}</p>
-          <ul className="landing-feature-grid">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-              <li key={n}>{t(`landing.feature${n}`)}</li>
-            ))}
-          </ul>
-        </section>
-
         <section id="prototype" className="landing-section landing-section--prototype">
           <h2 className="landing-section__title">{t("landing.prototypeTitle")}</h2>
-          <p className="landing-section__intro">{t("landing.prototypeIntro")}</p>
           <div className="row landing-prototype-cta">
             {loggedIn ? (
               <>
@@ -144,7 +104,6 @@ export default function HomePage() {
 
         <section id="waitlist" className="landing-section">
           <h2 className="landing-section__title">{t("landing.waitlistTitle")}</h2>
-          <p className="landing-section__intro">{t("landing.waitlistIntro")}</p>
           <WaitlistSection />
         </section>
 
