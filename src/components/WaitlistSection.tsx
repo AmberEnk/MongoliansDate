@@ -1,32 +1,6 @@
 import { FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-const STORAGE_KEY = "md_waitlist_entries";
-
-type Entry = {
-  email: string;
-  gender: string;
-  country: string;
-  city: string;
-  age: number;
-  at: string;
-};
-
-function readEntries(): Entry[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const j = JSON.parse(raw) as unknown;
-    return Array.isArray(j) ? (j as Entry[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeEntries(entries: Entry[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-}
-
 export default function WaitlistSection() {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
@@ -36,9 +10,11 @@ export default function WaitlistSection() {
   const [age, setAge] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (submitting) return;
     setErr(null);
     setMsg(null);
     const em = email.trim().toLowerCase();
@@ -54,26 +30,41 @@ export default function WaitlistSection() {
       setErr(t("landing.waitlistDetailsError"));
       return;
     }
-    const entries = readEntries();
-    if (entries.some((x) => x.email === em)) {
-      setErr(t("landing.waitlistDuplicate"));
-      return;
+
+    try {
+      setSubmitting(true);
+      const response = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: em,
+          gender: genderValue,
+          country: countryValue,
+          city: cityValue,
+          age: ageValue,
+        }),
+      });
+
+      if (response.status === 409) {
+        setErr(t("landing.waitlistDuplicate"));
+        return;
+      }
+      if (!response.ok) {
+        setErr(t("landing.waitlistServerError"));
+        return;
+      }
+
+      setMsg(t("landing.waitlistSuccess"));
+      setEmail("");
+      setGender("");
+      setCountry("");
+      setCity("");
+      setAge("");
+    } catch {
+      setErr(t("landing.waitlistServerError"));
+    } finally {
+      setSubmitting(false);
     }
-    entries.push({
-      email: em,
-      gender: genderValue,
-      country: countryValue,
-      city: cityValue,
-      age: ageValue,
-      at: new Date().toISOString(),
-    });
-    writeEntries(entries);
-    setMsg(t("landing.waitlistSuccess"));
-    setEmail("");
-    setGender("");
-    setCountry("");
-    setCity("");
-    setAge("");
   }
 
   return (
@@ -135,8 +126,8 @@ export default function WaitlistSection() {
         </label>
         {err && <p className="err">{err}</p>}
         {msg && <p className="landing-waitlist-success">{msg}</p>}
-        <button type="submit" className="btn">
-          {t("landing.waitlistSubmit")}
+        <button type="submit" className="btn" disabled={submitting}>
+          {submitting ? t("common.loading") : t("landing.waitlistSubmit")}
         </button>
       </form>
     </div>
