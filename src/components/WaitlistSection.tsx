@@ -11,6 +11,7 @@ export default function WaitlistSection() {
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const LETTER_NUMBER_SPACE_ONLY = /^[\p{L}\p{N} ]+$/u;
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -28,6 +29,13 @@ export default function WaitlistSection() {
     const ageValue = Number(age);
     if (!genderValue || !Number.isFinite(ageValue) || ageValue < 18) {
       setErr(t("landing.waitlistDetailsError"));
+      return;
+    }
+    if (
+      (countryValue && !LETTER_NUMBER_SPACE_ONLY.test(countryValue)) ||
+      (cityValue && !LETTER_NUMBER_SPACE_ONLY.test(cityValue))
+    ) {
+      setErr(t("landing.waitlistTextError"));
       return;
     }
 
@@ -100,6 +108,7 @@ export default function WaitlistSection() {
             onChange={(e) => setCountry(e.target.value)}
             autoComplete="country-name"
             placeholder={t("landing.waitlistCountryPlaceholder")}
+            title={t("landing.waitlistTextError")}
           />
         </label>
         <label>
@@ -110,6 +119,7 @@ export default function WaitlistSection() {
             onChange={(e) => setCity(e.target.value)}
             autoComplete="address-level2"
             placeholder={t("landing.waitlistCityPlaceholder")}
+            title={t("landing.waitlistTextError")}
           />
         </label>
         <label>

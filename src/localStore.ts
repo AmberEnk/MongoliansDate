@@ -9,6 +9,8 @@ const KEYS = {
   messages: (matchId: string) => `md_local_messages_${matchId}`,
 } as const;
 
+const LETTER_NUMBER_SPACE_ONLY = /^[\p{L}\p{N} ]+$/u;
+
 export type UserRecord = {
   email: string;
   password: string;
@@ -118,13 +120,17 @@ export function registerUser(input: {
   optInLaFoundingMember: boolean;
 }): { ok: true } | { ok: false; error: string } {
   const email = input.email.trim().toLowerCase();
+  const displayName = input.displayName.trim();
   const users = readUsers();
   if (users[email]) return { ok: false, error: "Email already registered" };
+  if (!LETTER_NUMBER_SPACE_ONLY.test(displayName)) {
+    return { ok: false, error: "Display name must use letters and numbers only" };
+  }
   const rec: UserRecord = {
     email,
     password: input.password,
     userId: uid(),
-    displayName: input.displayName.trim(),
+    displayName,
     birthdate: input.birthdate,
     laFounding: input.optInLaFoundingMember,
   };

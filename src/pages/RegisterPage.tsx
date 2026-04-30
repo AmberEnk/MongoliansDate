@@ -12,11 +12,16 @@ export default function RegisterPage() {
   const [laFounding, setLaFounding] = useState(true);
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const LETTER_NUMBER_SPACE_ONLY = /^[\p{L}\p{N} ]+$/u;
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setErr(null);
     setMsg(null);
+    if (!LETTER_NUMBER_SPACE_ONLY.test(displayName.trim())) {
+      setErr("Display name can only contain letters and numbers.");
+      return;
+    }
     const r = store.registerUser({
       email,
       password,
@@ -52,7 +57,12 @@ export default function RegisterPage() {
         </label>
         <label>
           {t("register.displayName")}
-          <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
+          <input
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            required
+            title="Letters and numbers only"
+          />
         </label>
         <label>
           {t("register.birthdate")}

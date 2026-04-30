@@ -168,6 +168,7 @@
     "waitlistDuplicate": "That email is already on the list.",
     "waitlistEmailError": "Please enter a valid email.",
     "waitlistDetailsError": "Please complete gender and age (18+).",
+    "waitlistTextError": "Country and city can contain letters and numbers only.",
     "waitlistServerError": "We couldn't save your entry right now. Please try again.",
     "visualsTitle": "From the steppe to the city",
     "visualsIntro": "Steppe-inspired decorative motifs, interlocking rings as a marriage symbol, and illustrative photos: Mongolian landscapes, two people on their phones (faces not shown), traditional dress on grassland, a modern couple abroad, wedding bands, Paris, and views of Ulaanbaatar.",
