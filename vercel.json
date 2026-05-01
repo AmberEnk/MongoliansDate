@@ -1,5 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/waitlist.ts": { "maxDuration": 25 },
+    "api/waitlist-admin.ts": { "maxDuration": 25 },
+    "api/waitlist-export.ts": { "maxDuration": 25 }
+  },
   "rewrites": [
     {
       "source": "/((?!api/).*)",

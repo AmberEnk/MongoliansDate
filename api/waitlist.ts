@@ -1,3 +1,6 @@
+import { ensureWaitlistTable, getDbConnectionString, getSql } from "./_db";
+import { parseJsonBody } from "./_parseJsonBody";
+
 export default async function handler(req: any, res: any) {
   const g = globalThis as any;
   const ip = String(req.headers["x-forwarded-for"] || req.headers["x-real-ip"] || req.socket?.remoteAddress || "unknown");
@@ -18,11 +21,12 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const email = String(req.body?.email || "").trim().toLowerCase();
-    const gender = String(req.body?.gender || "").trim().toLowerCase();
-    const country = String(req.body?.country || "").trim();
-    const city = String(req.body?.city || "").trim();
-    const age = Number(req.body?.age);
+    const body = parseJsonBody(req);
+    const email = String(body.email ?? "").trim().toLowerCase();
+    const gender = String(body.gender ?? "").trim().toLowerCase();
+    const country = String(body.country ?? "").trim();
+    const city = String(body.city ?? "").trim();
+    const age = Number(body.age);
 
     const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     const validText = /^[\p{L}\p{N} ]*$/u;
@@ -36,32 +40,12 @@ export default async function handler(req: any, res: any) {
       return res.status(400).json({ error: "Invalid age." });
     }
 
-    const connection = process.env.POSTGRES_URL || process.env.DATABASE_URL;
-    if (!connection) {
+    if (!getDbConnectionString()) {
       return res.status(500).json({ error: "Database is not configured." });
     }
 
-    const { Pool } = await import("pg");
-    const g = globalThis as any;
-    if (!g.__uchralWaitlistPool) {
-      g.__uchralWaitlistPool = new Pool({
-        connectionString: connection,
-        max: 5,
-      });
-    }
-    const db = g.__uchralWaitlistPool as any;
-
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS waitlist_entries (
-        id BIGSERIAL PRIMARY KEY,
-        email TEXT UNIQUE NOT NULL,
-        gender TEXT NOT NULL,
-        country TEXT,
-        city TEXT,
-        age INTEGER NOT NULL CHECK (age >= 18 AND age <= 120),
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-    `);
+    const db = await getSql();
+    await ensureWaitlistTable(db);
 
     await db.query(
       `

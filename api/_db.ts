@@ -1,11 +1,16 @@
 let pool: any = null;
 
-function getConnectionString() {
-  return process.env.POSTGRES_URL || process.env.DATABASE_URL || "";
+/** Prefer POSTGRES_URL (Vercel Postgres / Neon) or DATABASE_URL. */
+export function getDbConnectionString(): string {
+  return String(process.env.POSTGRES_URL || process.env.DATABASE_URL || "").trim();
 }
 
+/**
+ * Shared pool for waitlist API routes. Tuned for Vercel serverless: low max
+ * avoids exhausting provider connection limits; idle timeout releases sockets.
+ */
 export async function getSql() {
-  const connection = getConnectionString();
+  const connection = getDbConnectionString();
   if (!connection) {
     throw new Error("Missing POSTGRES_URL (or DATABASE_URL) environment variable.");
   }
@@ -13,7 +18,10 @@ export async function getSql() {
     const { Pool } = await import("pg");
     pool = new Pool({
       connectionString: connection,
-      max: 5,
+      max: 1,
+      idleTimeoutMillis: 20_000,
+      connectionTimeoutMillis: 10_000,
+      allowExitOnIdle: true,
     });
   }
   return pool;
