@@ -1,7 +1,9 @@
 import { FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-export default function WaitlistSection() {
+type Props = { compact?: boolean };
+
+export default function WaitlistSection({ compact = false }: Props) {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState("");
@@ -76,9 +78,13 @@ export default function WaitlistSection() {
   }
 
   return (
-    <div className="landing-waitlist-card card">
-      <h3 className="landing-waitlist-card__title">{t("landing.waitlistFormTitle")}</h3>
-      <p className="muted landing-waitlist-card__sub">{t("landing.waitlistFormSubtitle")}</p>
+    <div className={`landing-waitlist-card card${compact ? " landing-waitlist-card--compact" : ""}`}>
+      {!compact ? (
+        <>
+          <h3 className="landing-waitlist-card__title">{t("landing.waitlistFormTitle")}</h3>
+          <p className="muted landing-waitlist-card__sub">{t("landing.waitlistFormSubtitle")}</p>
+        </>
+      ) : null}
       <form onSubmit={onSubmit} className="landing-waitlist-form">
         <label>
           {t("landing.waitlistEmail")}

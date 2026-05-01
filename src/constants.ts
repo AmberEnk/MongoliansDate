@@ -13,3 +13,6 @@ export const LA_METRO_DEFAULT = {
   lng: -118.243683,
   label: "Los Angeles metro",
 } as const;
+
+/** When true: hide signup/login UI, gate auth routes — landing is waitlist-only for demand validation. Flip to false to reopen accounts. */
+export const WAITLIST_ONLY_LAUNCH = true;

@@ -7,7 +7,6 @@ type AuthState = {
   refresh: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  debugLogin: () => Promise<void>;
 };
 
 const Ctx = createContext<AuthState | null>(null);
@@ -30,18 +29,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await refresh();
   }, [refresh]);
 
-  const debugLogin = useCallback(async () => {
-    const r = store.debugFakeLogin();
-    if (!r.ok) throw new Error(r.error);
-    await refresh();
-  }, [refresh]);
-
   const loggedIn = !!store.getCurrentUser();
   const ready = true;
 
   const v = useMemo(
-    () => ({ ready, loggedIn, refresh, login, logout, debugLogin }),
-    [ready, loggedIn, refresh, login, logout, debugLogin, tick]
+    () => ({ ready, loggedIn, refresh, login, logout }),
+    [ready, loggedIn, refresh, login, logout, tick]
   );
 
   return <Ctx.Provider value={v}>{children}</Ctx.Provider>;

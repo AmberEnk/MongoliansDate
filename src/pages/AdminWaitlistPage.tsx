@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
 type Row = {
   email: string;
@@ -14,6 +14,15 @@ export default function AdminWaitlistPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const meta = document.createElement("meta");
+    meta.name = "robots";
+    meta.content = "noindex, nofollow";
+    meta.setAttribute("data-uchral-admin", "");
+    document.head.appendChild(meta);
+    return () => meta.remove();
+  }, []);
 
   const counts = useMemo(() => {
     const out: Record<string, number> = {};
@@ -89,6 +98,10 @@ export default function AdminWaitlistPage() {
     <section className="admin-waitlist">
       <h1>Waitlist Admin</h1>
       <p className="muted">View signups and gender counts.</p>
+      <p className="muted">
+        Paste the Bearer secret set as WAITLIST_EXPORT_TOKEN on the server. Do not link this page in public
+        posts.
+      </p>
 
       <form className="admin-waitlist__auth" onSubmit={loadRows}>
         <input

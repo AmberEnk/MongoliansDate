@@ -8,7 +8,7 @@ import * as store from "../localStore";
 export default function OnboardingPage() {
   const { t, i18n } = useTranslation();
   const { refresh } = useAuth();
-  const me = store.getCurrentUser();
+  const session = store.getCurrentUser();
   const [bio, setBio] = useState("");
   const [intent, setIntent] = useState("Long-term · marriage-minded when it fits");
   const [stance, setStance] = useState<string>("prefer_not_say");
@@ -17,16 +17,17 @@ export default function OnboardingPage() {
   const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!me) return;
-    const p = store.loadMyProfile(me.userId);
+    if (!session) return;
+    const p = store.loadMyProfile(session.userId);
     if (p?.bio) setBio(p.bio);
     if (p?.intent) setIntent(p.intent);
     if (p?.sponsorship_stance) setStance(p.sponsorship_stance);
     if (p?.sponsorship_detail) setDetail(p.sponsorship_detail);
     if (p?.heritage_tags?.length) setHeritage(p.heritage_tags.join(", "));
-  }, [me]);
+  }, [session]);
 
-  if (!me) return null;
+  if (!session) return null;
+  const userId = session.userId;
 
   function profileLanguages(): string[] {
     if (i18n.language.startsWith("mn-Mong")) return ["Mongolian (traditional script)", "English"];
@@ -42,7 +43,7 @@ export default function OnboardingPage() {
       .map((s) => s.trim())
       .filter(Boolean);
     try {
-      store.saveMyProfile(me.userId, {
+      store.saveMyProfile(userId, {
         bio,
         intent,
         sponsorship_stance: stance,
@@ -69,7 +70,7 @@ export default function OnboardingPage() {
         return;
       }
       try {
-        store.setPrimaryPhotoDataUrl(me.userId, dataUrl);
+        store.setPrimaryPhotoDataUrl(userId, dataUrl);
         setMsg(t("onboarding.photoOk"));
         void refresh();
       } catch {

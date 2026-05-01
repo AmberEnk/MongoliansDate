@@ -1,75 +1,66 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
+import { WAITLIST_ONLY_LAUNCH } from "../constants";
 import WaitlistSection from "../components/WaitlistSection";
 import LandingVisualSection from "../components/LandingVisualSection";
 
 export default function HomePage() {
-  const { loggedIn, debugLogin } = useAuth();
+  const { loggedIn } = useAuth();
   const { t } = useTranslation();
 
   return (
-    <div className="landing-page">
-      <a href="#main" className="skip-link">
+    <div className="landing-page landing-page--radiant">
+      <a href="#main" className="skip-link skip-link--radiant">
         {t("landing.skip")}
       </a>
 
-      <nav className="landing-subnav" aria-label="Page sections">
+      <nav className="landing-nav-rail" aria-label="Landing">
         <a href="#visuals">{t("landing.navVisuals")}</a>
-        <a href="#prototype">{t("landing.navPrototype")}</a>
         <a href="#waitlist">{t("landing.navWaitlist")}</a>
       </nav>
 
       <main id="main" className="landing-main" tabIndex={-1}>
-        <section className="landing-hero" aria-labelledby="landing-hero-title">
-          <div className="landing-hero__brand" aria-hidden="true">
+        <section className="landing-hero landing-hero--radiant" aria-labelledby="landing-hero-title">
+          <h1 id="landing-hero-title" className="sr-only">
+            Uchral
+          </h1>
+          <div className="landing-hero__brand landing-hero__brand--radiant" aria-hidden="true">
             <img
               className="landing-hero__brand-img"
-              src="/brand-logo.png"
+              src="/uchral-logo-header-gradient.png"
               alt=""
-              width={512}
-              height={512}
+              width={1024}
+              height={379}
               decoding="async"
             />
           </div>
-          <p className="landing-hero__eyebrow">{t("landing.heroEyebrow")}</p>
-          <h1 id="landing-hero-title" className="landing-hero__headline">
-            <span className="landing-hero__headline-en">{t("landing.heroHeadline")}</span>
-            <span className="landing-hero__headline-mn" lang="mn">
-              {t("landing.heroHeadlineMn")}
-            </span>
-          </h1>
 
-          <div className="row landing-hero__actions">
+          <div className="row landing-hero__actions landing-hero__actions--radiant">
             {loggedIn ? (
               <>
-                <Link to="/discover" className="btn">
+                <Link to="/discover" className="btn btn--brand-yellow">
                   {t("home.discover")}
                 </Link>
-                <Link to="/onboarding" className="btn secondary">
+                <Link to="/onboarding" className="btn btn--brand-outline">
                   {t("home.profile")}
                 </Link>
-                <a href="#prototype" className="btn secondary">
-                  {t("landing.navPrototype")}
-                </a>
               </>
+            ) : WAITLIST_ONLY_LAUNCH ? (
+              <a href="#waitlist" className="btn btn--brand-yellow">
+                {t("landing.heroCtaWaitlist")}
+              </a>
             ) : (
               <>
-                <a href="#prototype" className="btn">
-                  {t("landing.heroCtaPrototype")}
-                </a>
-                <a href="#waitlist" className="btn secondary">
+                <Link to="/register" className="btn btn--brand-yellow">
+                  {t("register.signUp")}
+                </Link>
+                <a href="#waitlist" className="btn btn--brand-blue">
                   {t("landing.heroCtaWaitlist")}
                 </a>
-                <Link to="/register" className="btn secondary">
-                  {t("home.join")}
-                </Link>
-                <Link to="/login" className="btn secondary">
+                <Link to="/login" className="btn btn--brand-outline">
                   {t("home.signIn")}
                 </Link>
-                <button type="button" className="btn secondary" onClick={() => void debugLogin()}>
-                  {t("home.debugLogin")}
-                </button>
               </>
             )}
           </div>
@@ -77,38 +68,11 @@ export default function HomePage() {
 
         <LandingVisualSection />
 
-        <section id="prototype" className="landing-section landing-section--prototype">
-          <h2 className="landing-section__title">{t("landing.prototypeTitle")}</h2>
-          <div className="row landing-prototype-cta">
-            {loggedIn ? (
-              <>
-                <Link to="/discover" className="btn">
-                  {t("landing.prototypeCtaDiscover")}
-                </Link>
-                <Link to="/onboarding" className="btn secondary">
-                  {t("landing.prototypeCtaProfile")}
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link to="/register" className="btn">
-                  {t("landing.prototypeCtaRegister")}
-                </Link>
-                <Link to="/login" className="btn secondary">
-                  {t("home.signIn")}
-                </Link>
-              </>
-            )}
-          </div>
+        <section id="waitlist" className="landing-section landing-section--waitlist-radiant">
+          <WaitlistSection compact />
         </section>
 
-        <section id="waitlist" className="landing-section">
-          <h2 className="landing-section__title">{t("landing.waitlistTitle")}</h2>
-          <WaitlistSection />
-        </section>
-
-        <footer className="landing-site-footer">
-          <p>{t("landing.siteFooter")}</p>
+        <footer className="landing-site-footer landing-site-footer--radiant">
           <p className="landing-site-footer__legal muted">
             <Link to="/legal/guidelines">{t("home.communityGuidelines")}</Link>
             {" · "}

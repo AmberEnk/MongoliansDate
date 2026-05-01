@@ -147,25 +147,6 @@ export function loginUser(email: string, password: string): { ok: true } | { ok:
   return { ok: true };
 }
 
-/** Fixed demo account for local debugging (creates user if missing). */
-const DEBUG_EMAIL = "debug@local.invalid";
-const DEBUG_PASSWORD = "debugpass123456";
-
-export function debugFakeLogin(): { ok: true } | { ok: false; error: string } {
-  const users = readUsers();
-  if (!users[DEBUG_EMAIL]) {
-    const created = registerUser({
-      email: DEBUG_EMAIL,
-      password: DEBUG_PASSWORD,
-      displayName: "Debug User",
-      birthdate: "1990-01-01",
-      optInLaFoundingMember: true,
-    });
-    if (!created.ok) return created;
-  }
-  return loginUser(DEBUG_EMAIL, DEBUG_PASSWORD);
-}
-
 export function logoutUser() {
   setSessionEmail(null);
 }
