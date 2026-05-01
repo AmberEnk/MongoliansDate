@@ -1108,6 +1108,22 @@ textarea {
   color: rgba(74, 20, 64, 0.85);
 }
 
+.landing-site-footer__contact {
+  margin: 0 0 0.85rem;
+  text-align: center;
+}
+
+.landing-site-footer--radiant .landing-site-footer__mailto {
+  color: rgba(74, 20, 64, 0.92);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.landing-site-footer--radiant .landing-site-footer__mailto:hover {
+  color: rgba(106, 27, 154, 0.95);
+}
+
 .admin-waitlist {
   max-width: 72rem;
   margin: 0 auto;

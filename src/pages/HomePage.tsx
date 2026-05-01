@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
-import { WAITLIST_ONLY_LAUNCH } from "../constants";
+import { CONTACT_EMAIL, WAITLIST_ONLY_LAUNCH } from "../constants";
 import WaitlistSection from "../components/WaitlistSection";
 import LandingVisualSection from "../components/LandingVisualSection";
 
@@ -18,6 +18,7 @@ export default function HomePage() {
       <nav className="landing-nav-rail" aria-label="Landing">
         <a href="#visuals">{t("landing.navVisuals")}</a>
         <a href="#waitlist">{t("landing.navWaitlist")}</a>
+        <a href="#contact">{t("landing.navContact")}</a>
       </nav>
 
       <main id="main" className="landing-main" tabIndex={-1}>
@@ -72,7 +73,16 @@ export default function HomePage() {
           <WaitlistSection compact />
         </section>
 
-        <footer className="landing-site-footer landing-site-footer--radiant">
+        <footer id="contact" className="landing-site-footer landing-site-footer--radiant">
+          <p className="landing-site-footer__contact muted">
+            {t("landing.contactBefore")}{" "}
+            <a
+              className="landing-site-footer__mailto"
+              href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Uchral — question")}`}
+            >
+              {CONTACT_EMAIL}
+            </a>
+          </p>
           <p className="landing-site-footer__legal muted">
             <Link to="/legal/guidelines">{t("home.communityGuidelines")}</Link>
             {" · "}

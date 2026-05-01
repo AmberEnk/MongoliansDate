@@ -16,3 +16,5 @@ export const LA_METRO_DEFAULT = {
 
 /** When true: hide signup/login UI, gate auth routes — landing is waitlist-only for demand validation. Flip to false to reopen accounts. */
 export const WAITLIST_ONLY_LAUNCH = true;
+
+export const CONTACT_EMAIL = "contact@uchral.net";
