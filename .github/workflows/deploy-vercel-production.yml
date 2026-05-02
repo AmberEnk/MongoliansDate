@@ -1,0 +1,49 @@
+# Deploys to Vercel when you push to `main` — no "Vercel for GitHub" app required.
+#
+# One-time GitHub setup (repo → Settings → Secrets and variables → Actions):
+#   1. VERCEL_TOKEN      — https://vercel.com/account/tokens → Create
+#   2. VERCEL_ORG_ID     — Vercel → Project → Settings → General → "Team ID"
+#   3. VERCEL_PROJECT_ID — same page → "Project ID"
+#      (Or run `npx vercel link` locally and read `.vercel/project.json` — not committed to git.)
+#
+# After secrets exist, every push to main runs: pull env → build → deploy --prod.
+
+name: Deploy to Vercel (production)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: vercel-production-${{ github.repository }}
+  cancel-in-progress: true
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel env (production)
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build (Vercel)
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy prebuilt to production
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
