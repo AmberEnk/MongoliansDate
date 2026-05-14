@@ -1,6 +1,4 @@
-import { Pool } from "pg";
-
-let pool: Pool | null = null;
+let pool: any = null;
 
 /** Prefer POSTGRES_URL (Vercel Postgres / Neon) or DATABASE_URL. */
 export function getDbConnectionString(): string {
@@ -27,6 +25,7 @@ export async function getSql() {
     throw new Error("Missing POSTGRES_URL (or DATABASE_URL) environment variable.");
   }
   if (!pool) {
+    const { Pool } = await import("pg");
     pool = new Pool({
       connectionString: connection,
       max: 1,
