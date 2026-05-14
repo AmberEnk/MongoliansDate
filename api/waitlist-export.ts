@@ -1,4 +1,4 @@
-import { ensureWaitlistTable, getDbConnectionString, getSql, isUnsupportedForNodePg } from "./_db";
+import { ensureWaitlistTable, getDbConnectionString, isUnsupportedForNodePg, waitlistQuery } from "./_db";
 import { getExpectedWaitlistToken, waitlistAdminAuthorized } from "./_waitlistAuth";
 
 function escapeCsv(value: unknown): string {
@@ -34,17 +34,15 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    const db = await getSql();
-    await ensureWaitlistTable(db);
+    await ensureWaitlistTable();
 
-    const result = await db.query(
+    const { rows } = await waitlistQuery(
       `
       SELECT email, gender, country, city, age, created_at
       FROM waitlist_entries
       ORDER BY created_at DESC
       `
     );
-    const rows = result.rows;
 
     const header = ["email", "gender", "country", "city", "age", "created_at"];
     const lines = [header.join(",")];

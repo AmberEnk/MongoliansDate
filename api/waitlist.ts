@@ -1,4 +1,4 @@
-import { ensureWaitlistTable, getDbConnectionString, getSql, isUnsupportedForNodePg } from "./_db";
+import { ensureWaitlistTable, getDbConnectionString, isUnsupportedForNodePg, waitlistQuery } from "./_db";
 import { parseJsonBody } from "./_parseJsonBody";
 
 export default async function handler(req: any, res: any) {
@@ -50,10 +50,9 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    const db = await getSql();
-    await ensureWaitlistTable(db);
+    await ensureWaitlistTable();
 
-    await db.query(
+    await waitlistQuery(
       `
       INSERT INTO waitlist_entries (email, gender, country, city, age)
       VALUES ($1, $2, $3, $4, $5)

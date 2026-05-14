@@ -1,4 +1,4 @@
-import { ensureWaitlistTable, getDbConnectionString, getSql, isUnsupportedForNodePg } from "./_db";
+import { ensureWaitlistTable, getDbConnectionString, isUnsupportedForNodePg, waitlistQuery } from "./_db";
 import { getExpectedWaitlistToken, waitlistAdminAuthorized } from "./_waitlistAuth";
 
 export default async function handler(req: any, res: any) {
@@ -26,10 +26,9 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    const db = await getSql();
-    await ensureWaitlistTable(db);
+    await ensureWaitlistTable();
 
-    const result = await db.query(
+    const { rows } = await waitlistQuery(
       `
       SELECT email, gender, country, city, age, created_at
       FROM waitlist_entries
@@ -37,7 +36,7 @@ export default async function handler(req: any, res: any) {
       `
     );
 
-    return res.status(200).json({ rows: result.rows });
+    return res.status(200).json({ rows });
   } catch (error) {
     console.error("waitlist admin fetch failed", error);
     if (!res.headersSent) {

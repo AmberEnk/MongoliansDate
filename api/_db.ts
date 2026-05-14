@@ -1,8 +1,28 @@
-let pool: any = null;
+let pgPool: any = null;
+let neonSql: any = null;
+let neonBoundUrl: string | null = null;
 
-/** Prefer POSTGRES_URL (Vercel Postgres / Neon) or DATABASE_URL. */
+function connectionCandidates(): string[] {
+  return [
+    process.env.POSTGRES_URL,
+    process.env.POSTGRES_URL_NON_POOLING,
+    process.env.DATABASE_URL_UNPOOLED,
+    process.env.DIRECT_URL,
+    process.env.DATABASE_URL,
+  ]
+    .map((s) => String(s ?? "").trim())
+    .filter((s) => s.length > 0);
+}
+
+/**
+ * First direct Postgres URL in priority order (Vercel / Neon / Prisma conventions).
+ * Skips Prisma Accelerate / Data Proxy — those are not Postgres wire protocol for `pg`.
+ */
 export function getDbConnectionString(): string {
-  return String(process.env.POSTGRES_URL || process.env.DATABASE_URL || "").trim();
+  const list = connectionCandidates();
+  const direct = list.find((u) => !isUnsupportedForNodePg(u));
+  if (direct) return direct;
+  return list[0] ?? "";
 }
 
 /**
@@ -12,32 +32,64 @@ export function getDbConnectionString(): string {
 export function isUnsupportedForNodePg(url: string): boolean {
   if (!url) return false;
   const u = url.toLowerCase();
-  return u.includes("prisma.io") || u.includes("prisma-data.net") || u.includes("accelerate.prisma");
+  return (
+    u.includes("prisma.io") ||
+    u.includes("prisma-data.net") ||
+    u.includes("prisma-data.in") ||
+    u.includes("accelerate.prisma")
+  );
+}
+
+function shouldUseNeonHttp(url: string): boolean {
+  if (!url || isUnsupportedForNodePg(url)) return false;
+  const u = url.toLowerCase();
+  return u.includes("neon.tech") || u.includes("api.neon.tech");
 }
 
 /**
- * Shared pool for waitlist API routes. Tuned for Vercel serverless: low max
- * avoids exhausting provider connection limits; idle timeout releases sockets.
+ * Run a parameterized query. Uses `@neondatabase/serverless` (HTTP) on Neon hosts,
+ * otherwise `pg` Pool (TCP).
  */
-export async function getSql() {
+export async function waitlistQuery(text: string, params: unknown[] = []): Promise<{ rows: any[] }> {
   const connection = getDbConnectionString();
   if (!connection) {
     throw new Error("Missing POSTGRES_URL (or DATABASE_URL) environment variable.");
   }
-  if (!pool) {
+
+  if (shouldUseNeonHttp(connection)) {
+    if (!neonSql || neonBoundUrl !== connection) {
+      const { neon } = await import("@neondatabase/serverless");
+      neonSql = neon(connection, { fullResults: true });
+      neonBoundUrl = connection;
+    }
+    const result: any = await neonSql(text, params);
+    return { rows: result.rows ?? [] };
+  }
+
+  if (!pgPool) {
     const { Pool } = await import("pg");
-    pool = new Pool({
+    const low = connection.toLowerCase();
+    const ssl =
+      low.includes("sslmode=require") ||
+      low.includes("supabase.com") ||
+      low.includes("pooler.supabase")
+        ? { rejectUnauthorized: false }
+        : undefined;
+    pgPool = new Pool({
       connectionString: connection,
       max: 1,
       idleTimeoutMillis: 20_000,
-      connectionTimeoutMillis: 10_000,
+      connectionTimeoutMillis: 15_000,
+      ssl,
     });
   }
-  return pool;
+  const r = await pgPool.query(text, params);
+  return { rows: r.rows };
 }
 
-export async function ensureWaitlistTable(db: any) {
-  await db.query(`
+export async function ensureWaitlistTable() {
+  await waitlistQuery(
+    `
     CREATE TABLE IF NOT EXISTS waitlist_entries (
       id BIGSERIAL PRIMARY KEY,
       email TEXT UNIQUE NOT NULL,
@@ -47,5 +99,7 @@ export async function ensureWaitlistTable(db: any) {
       age INTEGER NOT NULL CHECK (age >= 18 AND age <= 120),
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-  `);
+  `,
+    []
+  );
 }
