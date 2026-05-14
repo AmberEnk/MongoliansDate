@@ -6,6 +6,16 @@ export function getDbConnectionString(): string {
 }
 
 /**
+ * Prisma Accelerate / Data Proxy hosts are not Postgres wire protocol — `pg` will fail at runtime.
+ * Use a direct connection string from Neon, Supabase, Vercel Postgres, etc.
+ */
+export function isUnsupportedForNodePg(url: string): boolean {
+  if (!url) return false;
+  const u = url.toLowerCase();
+  return u.includes("prisma.io") || u.includes("prisma-data.net") || u.includes("accelerate.prisma");
+}
+
+/**
  * Shared pool for waitlist API routes. Tuned for Vercel serverless: low max
  * avoids exhausting provider connection limits; idle timeout releases sockets.
  */

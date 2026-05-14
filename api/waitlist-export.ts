@@ -1,4 +1,4 @@
-import { ensureWaitlistTable, getDbConnectionString, getSql } from "./_db";
+import { ensureWaitlistTable, getDbConnectionString, getSql, isUnsupportedForNodePg } from "./_db";
 import { getExpectedWaitlistToken, waitlistAdminAuthorized } from "./_waitlistAuth";
 
 function escapeCsv(value: unknown): string {
@@ -26,6 +26,12 @@ export default async function handler(req: any, res: any) {
   try {
     if (!getDbConnectionString()) {
       return res.status(500).json({ error: "Database is not configured." });
+    }
+    if (isUnsupportedForNodePg(getDbConnectionString())) {
+      return res.status(503).json({
+        error:
+          "POSTGRES_URL must be a direct Postgres connection. Prisma Accelerate / prisma.io URLs do not work with this waitlist API.",
+      });
     }
 
     const db = await getSql();

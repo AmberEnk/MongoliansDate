@@ -1,4 +1,4 @@
-import { ensureWaitlistTable, getDbConnectionString, getSql } from "./_db";
+import { ensureWaitlistTable, getDbConnectionString, getSql, isUnsupportedForNodePg } from "./_db";
 import { parseJsonBody } from "./_parseJsonBody";
 
 export default async function handler(req: any, res: any) {
@@ -42,6 +42,12 @@ export default async function handler(req: any, res: any) {
 
     if (!getDbConnectionString()) {
       return res.status(500).json({ error: "Database is not configured." });
+    }
+    if (isUnsupportedForNodePg(getDbConnectionString())) {
+      return res.status(503).json({
+        error:
+          "POSTGRES_URL must be a direct Postgres connection (e.g. neon.tech, pooler.supabase.com). Prisma Accelerate / prisma.io proxy URLs do not work with this waitlist API.",
+      });
     }
 
     const db = await getSql();
