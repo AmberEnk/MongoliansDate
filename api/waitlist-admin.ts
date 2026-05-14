@@ -1,4 +1,5 @@
 import { ensureWaitlistTable, getDbConnectionString, getSql } from "./_db";
+import { getExpectedWaitlistToken, waitlistAdminAuthorized } from "./_waitlistAuth";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") {
@@ -6,11 +7,11 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: "Method not allowed." });
   }
 
-  const auth = String(req.headers.authorization || "");
-  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-  const expected = process.env.WAITLIST_EXPORT_TOKEN;
+  if (!getExpectedWaitlistToken()) {
+    return res.status(503).json({ error: "WAITLIST_EXPORT_TOKEN is not set on the server." });
+  }
 
-  if (!expected || token !== expected) {
+  if (!waitlistAdminAuthorized(req)) {
     return res.status(401).json({ error: "Unauthorized." });
   }
 

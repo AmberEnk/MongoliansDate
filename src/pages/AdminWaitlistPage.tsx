@@ -30,6 +30,16 @@ export default function AdminWaitlistPage() {
     return out;
   }, [rows]);
 
+  async function adminFetchErrorMessage(r: Response, fallback: string): Promise<string> {
+    try {
+      const j = (await r.json()) as { error?: string };
+      if (j?.error) return `${fallback} (${r.status}: ${j.error})`;
+    } catch {
+      /* ignore */
+    }
+    return `${fallback} (HTTP ${r.status}).`;
+  }
+
   async function loadRows(e?: FormEvent) {
     e?.preventDefault();
     if (!token.trim()) {
@@ -44,12 +54,19 @@ export default function AdminWaitlistPage() {
       });
       if (r.status === 401) {
         setRows([]);
-        setError("Invalid token.");
+        setError(
+          "Token did not match. In Vercel → Project → Settings → Environment Variables, open WAITLIST_EXPORT_TOKEN and copy only the secret value (not the name), with no quotes or spaces. Redeploy after changing it."
+        );
+        return;
+      }
+      if (r.status === 503) {
+        setRows([]);
+        setError(await adminFetchErrorMessage(r, "Server is missing WAITLIST_EXPORT_TOKEN"));
         return;
       }
       if (!r.ok) {
         setRows([]);
-        setError("Could not load waitlist.");
+        setError(await adminFetchErrorMessage(r, "Could not load waitlist"));
         return;
       }
       const data = (await r.json()) as { rows?: Row[] };
@@ -73,11 +90,13 @@ export default function AdminWaitlistPage() {
         headers: { Authorization: `Bearer ${token.trim()}` },
       });
       if (r.status === 401) {
-        setError("Invalid token.");
+        setError(
+          "Token did not match. Copy only the WAITLIST_EXPORT_TOKEN value from Vercel (no name, no quotes)."
+        );
         return;
       }
       if (!r.ok) {
-        setError("Could not export CSV.");
+        setError(await adminFetchErrorMessage(r, "Could not export CSV"));
         return;
       }
       const blob = await r.blob();
