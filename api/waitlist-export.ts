@@ -10,20 +10,20 @@ function escapeCsv(value: unknown): string {
 }
 
 export default async function handler(req: any, res: any) {
-  if (req.method !== "GET") {
-    res.setHeader("Allow", "GET");
-    return res.status(405).json({ error: "Method not allowed." });
-  }
-
-  if (!getExpectedWaitlistToken()) {
-    return res.status(503).json({ error: "WAITLIST_EXPORT_TOKEN is not set on the server." });
-  }
-
-  if (!waitlistAdminAuthorized(req)) {
-    return res.status(401).json({ error: "Unauthorized." });
-  }
-
   try {
+    if (req.method !== "GET") {
+      res.setHeader("Allow", "GET");
+      return res.status(405).json({ error: "Method not allowed." });
+    }
+
+    if (!getExpectedWaitlistToken()) {
+      return res.status(503).json({ error: "WAITLIST_EXPORT_TOKEN is not set on the server." });
+    }
+
+    if (!waitlistAdminAuthorized(req)) {
+      return res.status(401).json({ error: "Unauthorized." });
+    }
+
     if (!getDbConnectionString()) {
       return res.status(500).json({ error: "Database is not configured." });
     }
@@ -68,6 +68,8 @@ export default async function handler(req: any, res: any) {
     return res.status(200).send(lines.join("\n"));
   } catch (error) {
     console.error("waitlist export failed", error);
-    return res.status(500).json({ error: "Server error." });
+    if (!res.headersSent) {
+      return res.status(500).json({ error: "Server error." });
+    }
   }
 }

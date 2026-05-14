@@ -32,8 +32,14 @@ export default function AdminWaitlistPage() {
 
   async function adminFetchErrorMessage(r: Response, fallback: string): Promise<string> {
     try {
-      const j = (await r.json()) as { error?: string };
-      if (j?.error) return `${fallback} (${r.status}: ${j.error})`;
+      const text = await r.text();
+      try {
+        const j = JSON.parse(text) as { error?: string };
+        if (j?.error) return `${fallback} (${r.status}: ${j.error})`;
+      } catch {
+        const snippet = text.slice(0, 160).replace(/\s+/g, " ").trim();
+        if (snippet) return `${fallback} (HTTP ${r.status}). ${snippet}`;
+      }
     } catch {
       /* ignore */
     }

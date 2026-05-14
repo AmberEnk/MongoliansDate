@@ -2,20 +2,20 @@ import { ensureWaitlistTable, getDbConnectionString, getSql, isUnsupportedForNod
 import { getExpectedWaitlistToken, waitlistAdminAuthorized } from "./_waitlistAuth";
 
 export default async function handler(req: any, res: any) {
-  if (req.method !== "GET") {
-    res.setHeader("Allow", "GET");
-    return res.status(405).json({ error: "Method not allowed." });
-  }
-
-  if (!getExpectedWaitlistToken()) {
-    return res.status(503).json({ error: "WAITLIST_EXPORT_TOKEN is not set on the server." });
-  }
-
-  if (!waitlistAdminAuthorized(req)) {
-    return res.status(401).json({ error: "Unauthorized." });
-  }
-
   try {
+    if (req.method !== "GET") {
+      res.setHeader("Allow", "GET");
+      return res.status(405).json({ error: "Method not allowed." });
+    }
+
+    if (!getExpectedWaitlistToken()) {
+      return res.status(503).json({ error: "WAITLIST_EXPORT_TOKEN is not set on the server." });
+    }
+
+    if (!waitlistAdminAuthorized(req)) {
+      return res.status(401).json({ error: "Unauthorized." });
+    }
+
     if (!getDbConnectionString()) {
       return res.status(500).json({ error: "Database is not configured." });
     }
@@ -40,6 +40,8 @@ export default async function handler(req: any, res: any) {
     return res.status(200).json({ rows: result.rows });
   } catch (error) {
     console.error("waitlist admin fetch failed", error);
-    return res.status(500).json({ error: "Server error." });
+    if (!res.headersSent) {
+      return res.status(500).json({ error: "Server error." });
+    }
   }
 }
