@@ -2,25 +2,25 @@ import { ensureWaitlistTable, getDbConnectionString, getSql, isUnsupportedForNod
 import { parseJsonBody } from "./_parseJsonBody";
 
 export default async function handler(req: any, res: any) {
-  const g = globalThis as any;
-  const ip = String(req.headers["x-forwarded-for"] || req.headers["x-real-ip"] || req.socket?.remoteAddress || "unknown");
-  const now = Date.now();
-  const windowMs = 60_000;
-  const maxPerWindow = 20;
-  if (!g.__uchralWaitlistRateLimit) g.__uchralWaitlistRateLimit = new Map<string, number[]>();
-  const hits = (g.__uchralWaitlistRateLimit.get(ip) || []).filter((ts: number) => now - ts < windowMs);
-  if (hits.length >= maxPerWindow) {
-    return res.status(429).json({ error: "Too many requests. Please try again soon." });
-  }
-  hits.push(now);
-  g.__uchralWaitlistRateLimit.set(ip, hits);
-
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
-    return res.status(405).json({ error: "Method not allowed." });
-  }
-
   try {
+    const g = globalThis as any;
+    const ip = String(req.headers["x-forwarded-for"] || req.headers["x-real-ip"] || req.socket?.remoteAddress || "unknown");
+    const now = Date.now();
+    const windowMs = 60_000;
+    const maxPerWindow = 20;
+    if (!g.__uchralWaitlistRateLimit) g.__uchralWaitlistRateLimit = new Map<string, number[]>();
+    const hits = (g.__uchralWaitlistRateLimit.get(ip) || []).filter((ts: number) => now - ts < windowMs);
+    if (hits.length >= maxPerWindow) {
+      return res.status(429).json({ error: "Too many requests. Please try again soon." });
+    }
+    hits.push(now);
+    g.__uchralWaitlistRateLimit.set(ip, hits);
+
+    if (req.method !== "POST") {
+      res.setHeader("Allow", "POST");
+      return res.status(405).json({ error: "Method not allowed." });
+    }
+
     const body = parseJsonBody(req);
     const email = String(body.email ?? "").trim().toLowerCase();
     const gender = String(body.gender ?? "").trim().toLowerCase();
@@ -66,7 +66,9 @@ export default async function handler(req: any, res: any) {
     if (error?.code === "23505") {
       return res.status(409).json({ error: "Email already exists." });
     }
-    console.error("waitlist insert failed", error);
-    return res.status(500).json({ error: "Server error." });
+    console.error("waitlist failed", error);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: "Server error." });
+    }
   }
 }
