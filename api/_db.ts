@@ -21,7 +21,6 @@ export async function getSql() {
       max: 1,
       idleTimeoutMillis: 20_000,
       connectionTimeoutMillis: 10_000,
-      allowExitOnIdle: true,
     });
   }
   return pool;
