@@ -86,6 +86,8 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \
 4. **See the real error**: Vercel → project → **Logs** (or run `npx vercel logs <deployment-url>`). The browser only shows the generic platform message.
 5. After changing env vars, **redeploy** so functions pick them up.
 
+6. **Prisma Postgres (`db.prisma.io`)** — waitlist routes use **`pg`** (TCP) for non-Neon URLs. Do **not** expect Neon's serverless `Pool` to work against Prisma's host; that mismatch caused `FUNCTION_INVOCATION_FAILED` in some deployments.
+
 ## Security notes
 
 - Keep `WAITLIST_EXPORT_TOKEN` private.

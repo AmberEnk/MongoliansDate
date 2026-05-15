@@ -1,6 +1,8 @@
+import { Pool } from "pg";
 import { getDbConnectionString, isUnsupportedForNodePg } from "./_lib/waitlistEnv";
 
-let tcpPool: InstanceType<typeof import("@neondatabase/serverless").Pool> | null = null;
+/** Standard Postgres TCP pool (Prisma Postgres, Supabase, Vercel Postgres, etc.). */
+let pgPool: Pool | null = null;
 let neonSql: any = null;
 let neonBoundUrl: string | null = null;
 
@@ -12,7 +14,7 @@ function shouldUseNeonHttp(url: string): boolean {
 }
 
 /**
- * Parameterized query: `neon()` (HTTP) on Neon hosts; Neon's `Pool` (TCP/WebSocket) elsewhere — avoids bundling `pg`.
+ * Neon: `neon()` over HTTP. Everyone else: `pg` over TCP (do not use `@neondatabase/serverless` Pool for non-Neon hosts — it targets Neon's WebSocket proxy and crashes on e.g. db.prisma.io).
  */
 export async function waitlistQuery(text: string, params: unknown[] = []): Promise<{ rows: any[] }> {
   const connection = getDbConnectionString();
@@ -30,8 +32,7 @@ export async function waitlistQuery(text: string, params: unknown[] = []): Promi
     return { rows: result.rows ?? [] };
   }
 
-  if (!tcpPool) {
-    const { Pool } = await import("@neondatabase/serverless");
+  if (!pgPool) {
     const low = connection.toLowerCase();
     const ssl =
       low.includes("sslmode=require") ||
@@ -40,7 +41,7 @@ export async function waitlistQuery(text: string, params: unknown[] = []): Promi
       low.includes("db.prisma.io")
         ? { rejectUnauthorized: false }
         : undefined;
-    tcpPool = new Pool({
+    pgPool = new Pool({
       connectionString: connection,
       max: 1,
       idleTimeoutMillis: 20_000,
@@ -48,7 +49,7 @@ export async function waitlistQuery(text: string, params: unknown[] = []): Promi
       ssl,
     });
   }
-  const r = await tcpPool.query(text, params);
+  const r = await pgPool.query(text, params);
   return { rows: r.rows };
 }
 
