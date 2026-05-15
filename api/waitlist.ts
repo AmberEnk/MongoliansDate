@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { parseJsonBody } from "./_parseJsonBody";
-import { getDbConnectionString, isUnsupportedForNodePg } from "../lib/waitlistEnv";
+import { getDbConnectionString, isUnsupportedForNodePg } from "./_lib/waitlistEnv";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {

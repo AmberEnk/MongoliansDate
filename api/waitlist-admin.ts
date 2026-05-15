@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getExpectedWaitlistToken, waitlistAdminAuthorized } from "../lib/waitlistAuth";
-import { getDbConnectionString, isUnsupportedForNodePg } from "../lib/waitlistEnv";
+import { getExpectedWaitlistToken, waitlistAdminAuthorized } from "./_lib/waitlistAuth";
+import { getDbConnectionString, isUnsupportedForNodePg } from "./_lib/waitlistEnv";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {

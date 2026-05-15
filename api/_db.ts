@@ -1,4 +1,4 @@
-import { getDbConnectionString, isUnsupportedForNodePg } from "../lib/waitlistEnv";
+import { getDbConnectionString, isUnsupportedForNodePg } from "./_lib/waitlistEnv";
 
 let tcpPool: InstanceType<typeof import("@neondatabase/serverless").Pool> | null = null;
 let neonSql: any = null;

@@ -1,4 +1,4 @@
-/** Env-only helpers (no DB drivers). Lives outside `/api` so Vercel never treats it as a serverless entry. */
+/** Env-only helpers (no DB drivers). Under `api/_lib/` so Vercel bundles them with functions (parent `../lib` often is omitted). */
 
 function connectionCandidates(): string[] {
   return [
