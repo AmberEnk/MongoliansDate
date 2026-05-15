@@ -1,44 +1,8 @@
+import { getDbConnectionString, isUnsupportedForNodePg } from "./waitlistEnv";
+
 let pgPool: any = null;
 let neonSql: any = null;
 let neonBoundUrl: string | null = null;
-
-function connectionCandidates(): string[] {
-  return [
-    process.env.POSTGRES_URL,
-    process.env.POSTGRES_URL_NON_POOLING,
-    process.env.DATABASE_URL_UNPOOLED,
-    process.env.DIRECT_URL,
-    process.env.DATABASE_URL,
-  ]
-    .map((s) => String(s ?? "").trim())
-    .filter((s) => s.length > 0);
-}
-
-/**
- * First direct Postgres URL in priority order (Vercel / Neon / Prisma conventions).
- * Skips Prisma Accelerate / Data Proxy — those are not Postgres wire protocol for `pg`.
- */
-export function getDbConnectionString(): string {
-  const list = connectionCandidates();
-  const direct = list.find((u) => !isUnsupportedForNodePg(u));
-  if (direct) return direct;
-  return list[0] ?? "";
-}
-
-/**
- * Prisma Accelerate / Data Proxy hosts are not Postgres wire protocol — `pg` will fail at runtime.
- * Use a direct connection string from Neon, Supabase, Vercel Postgres, etc.
- */
-export function isUnsupportedForNodePg(url: string): boolean {
-  if (!url) return false;
-  const u = url.toLowerCase();
-  return (
-    u.includes("prisma.io") ||
-    u.includes("prisma-data.net") ||
-    u.includes("prisma-data.in") ||
-    u.includes("accelerate.prisma")
-  );
-}
 
 function shouldUseNeonHttp(url: string): boolean {
   if (!url || isUnsupportedForNodePg(url)) return false;
@@ -103,3 +67,5 @@ export async function ensureWaitlistTable() {
     []
   );
 }
+
+export { getDbConnectionString, isUnsupportedForNodePg } from "./waitlistEnv";

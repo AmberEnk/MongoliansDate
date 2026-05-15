@@ -14,6 +14,12 @@ export function getBearerToken(req: { headers?: Record<string, string | string[]
   return raw;
 }
 
+export function getBearerTokenFromRequest(request: Request): string {
+  const raw =
+    request.headers.get("authorization") ?? request.headers.get("Authorization") ?? "";
+  return getBearerToken({ headers: { authorization: raw } });
+}
+
 export function getExpectedWaitlistToken(): string {
   let s = String(process.env.WAITLIST_EXPORT_TOKEN ?? "").trim();
   if (/^Bearer\s+/i.test(s)) s = s.replace(/^Bearer\s+/i, "").trim();
@@ -22,6 +28,12 @@ export function getExpectedWaitlistToken(): string {
 
 export function waitlistAdminAuthorized(req: { headers?: Record<string, string | string[] | undefined> }): boolean {
   const got = getBearerToken(req);
+  const want = getExpectedWaitlistToken();
+  return want.length > 0 && got === want;
+}
+
+export function waitlistAdminAuthorizedRequest(request: Request): boolean {
+  const got = getBearerTokenFromRequest(request);
   const want = getExpectedWaitlistToken();
   return want.length > 0 && got === want;
 }

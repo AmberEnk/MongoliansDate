@@ -1,46 +1,53 @@
-import { ensureWaitlistTable, getDbConnectionString, isUnsupportedForNodePg, waitlistQuery } from "./_db";
-import { getExpectedWaitlistToken, waitlistAdminAuthorized } from "./_waitlistAuth";
+import { getExpectedWaitlistToken, waitlistAdminAuthorizedRequest } from "./_waitlistAuth";
+import { getDbConnectionString, isUnsupportedForNodePg } from "./waitlistEnv";
 
-export default async function handler(req: any, res: any) {
-  try {
-    if (req.method !== "GET") {
-      res.setHeader("Allow", "GET");
-      return res.status(405).json({ error: "Method not allowed." });
-    }
+export default {
+  async fetch(request: Request): Promise<Response> {
+    try {
+      if (request.method !== "GET") {
+        return Response.json({ error: "Method not allowed." }, {
+          status: 405,
+          headers: { Allow: "GET" },
+        });
+      }
 
-    if (!getExpectedWaitlistToken()) {
-      return res.status(503).json({ error: "WAITLIST_EXPORT_TOKEN is not set on the server." });
-    }
+      if (!getExpectedWaitlistToken()) {
+        return Response.json({ error: "WAITLIST_EXPORT_TOKEN is not set on the server." }, { status: 503 });
+      }
 
-    if (!waitlistAdminAuthorized(req)) {
-      return res.status(401).json({ error: "Unauthorized." });
-    }
+      if (!waitlistAdminAuthorizedRequest(request)) {
+        return Response.json({ error: "Unauthorized." }, { status: 401 });
+      }
 
-    if (!getDbConnectionString()) {
-      return res.status(500).json({ error: "Database is not configured." });
-    }
-    if (isUnsupportedForNodePg(getDbConnectionString())) {
-      return res.status(503).json({
-        error:
-          "POSTGRES_URL must be a direct Postgres connection. Prisma Accelerate / prisma.io URLs do not work with this waitlist API.",
-      });
-    }
+      if (!getDbConnectionString()) {
+        return Response.json({ error: "Database is not configured." }, { status: 500 });
+      }
+      if (isUnsupportedForNodePg(getDbConnectionString())) {
+        return Response.json(
+          {
+            error:
+              "POSTGRES_URL must be a direct Postgres connection. Prisma Accelerate / prisma.io URLs do not work with this waitlist API.",
+          },
+          { status: 503 }
+        );
+      }
 
-    await ensureWaitlistTable();
+      const { ensureWaitlistTable, waitlistQuery } = await import("./_db");
 
-    const { rows } = await waitlistQuery(
-      `
+      await ensureWaitlistTable();
+
+      const { rows } = await waitlistQuery(
+        `
       SELECT email, gender, country, city, age, created_at
       FROM waitlist_entries
       ORDER BY created_at DESC
       `
-    );
+      );
 
-    return res.status(200).json({ rows });
-  } catch (error) {
-    console.error("waitlist admin fetch failed", error);
-    if (!res.headersSent) {
-      return res.status(500).json({ error: "Server error." });
+      return Response.json({ rows });
+    } catch (error) {
+      console.error("waitlist admin fetch failed", error);
+      return Response.json({ error: "Server error." }, { status: 500 });
     }
-  }
-}
+  },
+};
