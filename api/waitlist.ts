@@ -1,13 +1,14 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { parseJsonBody } from "./_parseJsonBody";
 import { getDbConnectionString, isUnsupportedForNodePg } from "./_lib/waitlistEnv";
+import { parseJsonBody } from "./_parseJsonBody";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const g = globalThis as any;
-    const ip = String(req.headers?.["x-forwarded-for"] ?? req.headers?.["x-real-ip"] ?? "")
-      .split(",")[0]
-      ?.trim() || "unknown";
+    const ip =
+      String(req.headers?.["x-forwarded-for"] ?? req.headers?.["x-real-ip"] ?? "")
+        .split(",")[0]
+        ?.trim() || "unknown";
     const now = Date.now();
     const windowMs = 60_000;
     const maxPerWindow = 20;
@@ -32,12 +33,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const age = Number(body.age);
 
     const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    const validText = /^[a-zA-Z0-9 \u0080-\uFFFF]*$/;
+    const validText = /^[\p{L}\p{N} ]*$/u;
     const allowedGenders = new Set(["male", "female", "lgbtq_plus"]);
     if (!validEmail) return res.status(400).json({ error: "Invalid email." });
     if (!allowedGenders.has(gender)) return res.status(400).json({ error: "Invalid gender." });
     if ((country && !validText.test(country)) || (city && !validText.test(city))) {
-      return res.status(400).json({ error: "Country/city must be letters, numbers, or spaces." });
+      return res.status(400).json({ error: "Country/city must be alphanumeric." });
     }
     if (!Number.isInteger(age) || age < 18 || age > 120) {
       return res.status(400).json({ error: "Invalid age." });
@@ -49,7 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (isUnsupportedForNodePg(getDbConnectionString())) {
       return res.status(503).json({
         error:
-          "POSTGRES_URL must be a direct Postgres connection (e.g. neon.tech, pooler.supabase.com). Prisma Accelerate / prisma.io proxy URLs do not work with this waitlist API.",
+          "Database URL must be direct Postgres (e.g. postgres://…@db.prisma.io/…, Neon, Supabase). Prisma Accelerate prisma+postgres / prisma:// proxy URLs do not work with this API.",
       });
     }
 

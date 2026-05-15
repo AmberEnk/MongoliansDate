@@ -31,7 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (isUnsupportedForNodePg(getDbConnectionString())) {
       return res.status(503).json({
         error:
-          "POSTGRES_URL must be a direct Postgres connection. Prisma Accelerate / prisma.io URLs do not work with this waitlist API.",
+          "Database URL must be direct Postgres (e.g. postgres://…@db.prisma.io/…). Prisma Accelerate (prisma+postgres / prisma://) URLs do not work with this waitlist API.",
       });
     }
 

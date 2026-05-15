@@ -60,6 +60,10 @@ export default function WaitlistSection({ compact = false }: Props) {
         return;
       }
       if (!response.ok) {
+        if (import.meta.env.DEV && response.status === 404) {
+          setErr(t("landing.waitlistDevProxyHint"));
+          return;
+        }
         setErr(t("landing.waitlistServerError"));
         return;
       }

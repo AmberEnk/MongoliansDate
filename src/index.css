@@ -1142,6 +1142,11 @@ textarea {
   max-width: 32rem;
 }
 
+.admin-waitlist__devhint {
+  margin-top: 0.75rem;
+  font-size: 0.9em;
+}
+
 .admin-waitlist__counts {
   display: flex;
   flex-wrap: wrap;

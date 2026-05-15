@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type Row = {
   email: string;
@@ -17,6 +18,7 @@ function normalizeBearerSecret(raw: string): string {
 }
 
 export default function AdminWaitlistPage() {
+  const { i18n } = useTranslation();
   const [token, setToken] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(false);
@@ -28,8 +30,19 @@ export default function AdminWaitlistPage() {
     meta.content = "noindex, nofollow";
     meta.setAttribute("data-uchral-admin", "");
     document.head.appendChild(meta);
-    return () => meta.remove();
-  }, []);
+
+    const adminTitle = () => {
+      document.title = `${i18n.t("adminWaitlist.title")} · ${i18n.t("meta.title")}`;
+    };
+    adminTitle();
+    i18n.on("languageChanged", adminTitle);
+
+    return () => {
+      meta.remove();
+      i18n.off("languageChanged", adminTitle);
+      document.title = i18n.t("meta.title");
+    };
+  }, [i18n]);
 
   const counts = useMemo(() => {
     const out: Record<string, number> = {};
@@ -53,29 +66,23 @@ export default function AdminWaitlistPage() {
     return `${fallback} (HTTP ${r.status}).`;
   }
 
-  async function loadRows(e?: FormEvent) {
-    e?.preventDefault();
-    const secret = normalizeBearerSecret(token);
-    if (!secret) {
-      setError("Enter admin token.");
-      return;
-    }
+  async function fetchWaitlist(headers: HeadersInit, opts?: { viaDebug?: boolean }) {
     setLoading(true);
     setError(null);
     try {
-      const r = await fetch("/api/waitlist-admin", {
-        headers: { Authorization: `Bearer ${secret}` },
-      });
+      const r = await fetch("/api/waitlist-admin", { headers });
       if (r.status === 401) {
         setRows([]);
         setError(
-          "Token did not match. In Vercel → Project → Settings → Environment Variables, open WAITLIST_EXPORT_TOKEN and copy only the secret value (not the name), with no quotes or spaces. Redeploy after changing it."
+          opts?.viaDebug
+            ? 'Debug load was refused. Run npx vercel dev with UCHRAL_ADMIN_DEV_BYPASS=1 in .env.local (hits your local DB env). If you only use npm run dev + VITE_DEV_API_ORIGIN, the proxy targets production — production never allows no-token admin.'
+            : "Token did not match. In Vercel → Project → Settings → Environment Variables, open WAITLIST_EXPORT_TOKEN and copy only the secret value (not the name), with no quotes or spaces. Redeploy after changing it."
         );
         return;
       }
       if (r.status === 503) {
         setRows([]);
-        setError(await adminFetchErrorMessage(r, "Server is missing WAITLIST_EXPORT_TOKEN"));
+        setError(await adminFetchErrorMessage(r, "Server is missing WAITLIST_EXPORT_TOKEN or misconfigured"));
         return;
       }
       if (!r.ok) {
@@ -91,6 +98,20 @@ export default function AdminWaitlistPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function loadRows(e?: FormEvent) {
+    e?.preventDefault();
+    const secret = normalizeBearerSecret(token);
+    if (!secret) {
+      setError("Enter admin token.");
+      return;
+    }
+    await fetchWaitlist({ Authorization: `Bearer ${secret}` });
+  }
+
+  async function loadRowsDebug() {
+    await fetchWaitlist({ "X-Uchral-Admin-Dev": "1" }, { viaDebug: true });
   }
 
   async function downloadCsv() {
@@ -147,7 +168,19 @@ export default function AdminWaitlistPage() {
         <button type="submit" className="btn" disabled={loading}>
           {loading ? "Loading..." : "Load waitlist"}
         </button>
+        {import.meta.env.DEV ? (
+          <button type="button" className="btn secondary" disabled={loading} onClick={() => void loadRowsDebug()}>
+            Debug: load without token
+          </button>
+        ) : null}
       </form>
+
+      {import.meta.env.DEV ? (
+        <p className="muted admin-waitlist__devhint">
+          Debug bypass requires <code>UCHRAL_ADMIN_DEV_BYPASS=1</code> on the process that runs <code>/api/waitlist-admin</code> (e.g.{" "}
+          <code>npx vercel dev</code>). It is disabled when <code>VERCEL_ENV=production</code>.
+        </p>
+      ) : null}
 
       {error && <p className="err">{error}</p>}
 

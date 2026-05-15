@@ -6,8 +6,9 @@ let neonBoundUrl: string | null = null;
 
 function shouldUseNeonHttp(url: string): boolean {
   if (!url || isUnsupportedForNodePg(url)) return false;
+  if (String(process.env.UCHRAL_USE_NEON_HTTP || "").trim() === "1") return true;
   const u = url.toLowerCase();
-  return u.includes("neon.tech") || u.includes("api.neon.tech");
+  return u.includes("neon.tech") || u.includes("api.neon.tech") || u.includes(".neon.build");
 }
 
 /**
@@ -35,7 +36,8 @@ export async function waitlistQuery(text: string, params: unknown[] = []): Promi
     const ssl =
       low.includes("sslmode=require") ||
       low.includes("supabase.com") ||
-      low.includes("pooler.supabase")
+      low.includes("pooler.supabase") ||
+      low.includes("db.prisma.io")
         ? { rejectUnauthorized: false }
         : undefined;
     tcpPool = new Pool({

@@ -9,11 +9,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(405).json({ error: "Method not allowed." });
     }
 
-    if (!getExpectedWaitlistToken()) {
+    const bypassEnvOk = process.env.UCHRAL_ADMIN_DEV_BYPASS === "1";
+    const notVercelProduction = process.env.VERCEL_ENV !== "production";
+    const wantsBypass = String(req.headers["x-uchral-admin-dev"] || "") === "1";
+    const devBypassOk = bypassEnvOk && notVercelProduction && wantsBypass;
+
+    if (!getExpectedWaitlistToken() && !devBypassOk) {
       return res.status(503).json({ error: "WAITLIST_EXPORT_TOKEN is not set on the server." });
     }
 
-    if (!waitlistAdminAuthorized({ headers: req.headers as any })) {
+    if (!devBypassOk && !waitlistAdminAuthorized({ headers: req.headers as any })) {
       return res.status(401).json({ error: "Unauthorized." });
     }
 
@@ -23,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (isUnsupportedForNodePg(getDbConnectionString())) {
       return res.status(503).json({
         error:
-          "POSTGRES_URL must be a direct Postgres connection. Prisma Accelerate / prisma.io URLs do not work with this waitlist API.",
+          "Database URL must be direct Postgres (e.g. postgres://…@db.prisma.io/…). Prisma Accelerate (prisma+postgres / prisma://) URLs do not work with this waitlist API.",
       });
     }
 

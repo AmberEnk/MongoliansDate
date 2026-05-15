@@ -5,6 +5,12 @@ import en from "./locales/en.json";
 import mn from "./locales/mn.json";
 import mnMong from "./locales/mn-Mong.json";
 
+/** Admin routes set their own `document.title`; don't clobber on i18n init/language change. */
+function shouldKeepRouteManagedTitle(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.location.pathname.startsWith("/admin/");
+}
+
 void i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -26,7 +32,9 @@ void i18n
   })
   .then(() => {
     applyDocumentLang(i18n.language || "en");
-    document.title = i18n.t("meta.title");
+    if (!shouldKeepRouteManagedTitle()) {
+      document.title = i18n.t("meta.title");
+    }
   });
 
 function applyDocumentLang(lng: string) {
@@ -36,7 +44,9 @@ function applyDocumentLang(lng: string) {
 
 i18n.on("languageChanged", (lng) => {
   applyDocumentLang(lng);
-  document.title = i18n.t("meta.title");
+  if (!shouldKeepRouteManagedTitle()) {
+    document.title = i18n.t("meta.title");
+  }
 });
 
 export default i18n;

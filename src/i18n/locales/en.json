@@ -171,6 +171,7 @@
     "waitlistDetailsError": "Please complete gender and age (18+).",
     "waitlistTextError": "Country and city can contain letters and numbers only.",
     "waitlistServerError": "We couldn't save your entry right now. Please try again.",
+    "waitlistDevProxyHint": "Local dev has no /api server. Add VITE_DEV_API_ORIGIN=https://uchral.net to .env.development.local (then restart npm run dev), or run vercel dev.",
     "visualsTitle": "From the steppe to the city",
     "visualsIntro": "Steppe-inspired decorative motifs, interlocking rings as a marriage symbol, and illustrative photos: Mongolian landscapes, two people on their phones (faces not shown), traditional dress on grassland, a modern couple abroad, wedding bands, Paris, and views of Ulaanbaatar.",
     "visualsCredit": "Photos are stock images from Unsplash contributors (free to use). Illustrative only — not app members.",
@@ -184,6 +185,9 @@
     "visualAlt8": "Aerial view of Ulaanbaatar with mountains behind the city",
     "visualAlt9": "Ulaanbaatar seen from a high viewpoint",
     "siteFooter": "Uchral — local prototype. Not a live dating service."
+  },
+  "adminWaitlist": {
+    "title": "Waitlist admin"
   },
   "lang": {
     "en": "English",

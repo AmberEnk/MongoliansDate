@@ -3,6 +3,7 @@
 function connectionCandidates(): string[] {
   return [
     process.env.POSTGRES_URL,
+    process.env.PRISMA_DATABASE_URL,
     process.env.POSTGRES_URL_NON_POOLING,
     process.env.DATABASE_URL_UNPOOLED,
     process.env.DIRECT_URL,
@@ -23,13 +24,15 @@ export function getDbConnectionString(): string {
   return list[0] ?? "";
 }
 
+/**
+ * Prisma **Accelerate** / proxy-style URLs are not Postgres wire protocol here.
+ * Prisma **Postgres** (`db.prisma.io`) is normal Postgres over TLS — allowed.
+ */
 export function isUnsupportedForNodePg(url: string): boolean {
   if (!url) return false;
   const u = url.toLowerCase();
-  return (
-    u.includes("prisma.io") ||
-    u.includes("prisma-data.net") ||
-    u.includes("prisma-data.in") ||
-    u.includes("accelerate.prisma")
-  );
+  if (u.startsWith("prisma+postgres:") || u.startsWith("prisma://")) {
+    return true;
+  }
+  return u.includes("prisma-data.net") || u.includes("prisma-data.in") || u.includes("accelerate.prisma");
 }
