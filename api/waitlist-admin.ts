@@ -1,5 +1,5 @@
-import { getExpectedWaitlistToken, waitlistAdminAuthorizedRequest } from "./_waitlistAuth";
-import { getDbConnectionString, isUnsupportedForNodePg } from "./_waitlistEnv";
+import { getExpectedWaitlistToken, waitlistAdminAuthorizedRequest } from "../lib/waitlistAuth";
+import { getDbConnectionString, isUnsupportedForNodePg } from "../lib/waitlistEnv";
 
 export async function GET(request: Request): Promise<Response> {
   try {

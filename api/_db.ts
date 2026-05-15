@@ -1,6 +1,6 @@
-import { getDbConnectionString, isUnsupportedForNodePg } from "./_waitlistEnv";
+import { getDbConnectionString, isUnsupportedForNodePg } from "../lib/waitlistEnv";
 
-let pgPool: any = null;
+let tcpPool: InstanceType<typeof import("@neondatabase/serverless").Pool> | null = null;
 let neonSql: any = null;
 let neonBoundUrl: string | null = null;
 
@@ -11,8 +11,7 @@ function shouldUseNeonHttp(url: string): boolean {
 }
 
 /**
- * Run a parameterized query. Uses `@neondatabase/serverless` (HTTP) on Neon hosts,
- * otherwise `pg` Pool (TCP).
+ * Parameterized query: `neon()` (HTTP) on Neon hosts; Neon's `Pool` (TCP/WebSocket) elsewhere — avoids bundling `pg`.
  */
 export async function waitlistQuery(text: string, params: unknown[] = []): Promise<{ rows: any[] }> {
   const connection = getDbConnectionString();
@@ -30,8 +29,8 @@ export async function waitlistQuery(text: string, params: unknown[] = []): Promi
     return { rows: result.rows ?? [] };
   }
 
-  if (!pgPool) {
-    const { Pool } = await import("pg");
+  if (!tcpPool) {
+    const { Pool } = await import("@neondatabase/serverless");
     const low = connection.toLowerCase();
     const ssl =
       low.includes("sslmode=require") ||
@@ -39,7 +38,7 @@ export async function waitlistQuery(text: string, params: unknown[] = []): Promi
       low.includes("pooler.supabase")
         ? { rejectUnauthorized: false }
         : undefined;
-    pgPool = new Pool({
+    tcpPool = new Pool({
       connectionString: connection,
       max: 1,
       idleTimeoutMillis: 20_000,
@@ -47,7 +46,7 @@ export async function waitlistQuery(text: string, params: unknown[] = []): Promi
       ssl,
     });
   }
-  const r = await pgPool.query(text, params);
+  const r = await tcpPool.query(text, params);
   return { rows: r.rows };
 }
 
@@ -67,5 +66,3 @@ export async function ensureWaitlistTable() {
     []
   );
 }
-
-export { getDbConnectionString, isUnsupportedForNodePg } from "./_waitlistEnv";

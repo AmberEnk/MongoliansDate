@@ -1,5 +1,5 @@
-import { getExpectedWaitlistToken, waitlistAdminAuthorizedRequest } from "./_waitlistAuth";
-import { getDbConnectionString, isUnsupportedForNodePg } from "./_waitlistEnv";
+import { getExpectedWaitlistToken, waitlistAdminAuthorizedRequest } from "../lib/waitlistAuth";
+import { getDbConnectionString, isUnsupportedForNodePg } from "../lib/waitlistEnv";
 
 function escapeCsv(value: unknown): string {
   const v = value == null ? "" : String(value);

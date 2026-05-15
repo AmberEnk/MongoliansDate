@@ -1,4 +1,4 @@
-/** Env-only helpers (no pg / neon). Leading `_` keeps this out of Vercel `/api` routes. */
+/** Env-only helpers (no DB drivers). Lives outside `/api` so Vercel never treats it as a serverless entry. */
 
 function connectionCandidates(): string[] {
   return [

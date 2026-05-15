@@ -1,4 +1,4 @@
-import { getDbConnectionString, isUnsupportedForNodePg } from "./_waitlistEnv";
+import { getDbConnectionString, isUnsupportedForNodePg } from "../lib/waitlistEnv";
 
 async function parseJson(request: Request): Promise<Record<string, unknown>> {
   try {
