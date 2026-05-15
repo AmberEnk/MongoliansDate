@@ -1,4 +1,4 @@
-/** Env-only helpers (no pg / neon). Safe to import from any handler entrypoint. */
+/** Env-only helpers (no pg / neon). Leading `_` keeps this out of Vercel `/api` routes. */
 
 function connectionCandidates(): string[] {
   return [

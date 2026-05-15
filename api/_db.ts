@@ -1,4 +1,4 @@
-import { getDbConnectionString, isUnsupportedForNodePg } from "./waitlistEnv";
+import { getDbConnectionString, isUnsupportedForNodePg } from "./_waitlistEnv";
 
 let pgPool: any = null;
 let neonSql: any = null;
@@ -68,4 +68,4 @@ export async function ensureWaitlistTable() {
   );
 }
 
-export { getDbConnectionString, isUnsupportedForNodePg } from "./waitlistEnv";
+export { getDbConnectionString, isUnsupportedForNodePg } from "./_waitlistEnv";

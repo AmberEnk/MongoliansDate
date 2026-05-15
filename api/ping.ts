@@ -1,5 +1,3 @@
-export default {
-  fetch() {
-    return Response.json({ ok: true });
-  },
-};
+export function GET() {
+  return Response.json({ ok: true });
+}
