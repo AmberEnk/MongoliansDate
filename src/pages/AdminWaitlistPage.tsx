@@ -9,6 +9,13 @@ type Row = {
   created_at: string;
 };
 
+/** Same trimming as server; strips accidental "Bearer " if pasted into the password field. */
+function normalizeBearerSecret(raw: string): string {
+  let s = raw.trim();
+  if (/^Bearer\s+/i.test(s)) s = s.replace(/^Bearer\s+/i, "").trim();
+  return s;
+}
+
 export default function AdminWaitlistPage() {
   const [token, setToken] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
@@ -48,7 +55,8 @@ export default function AdminWaitlistPage() {
 
   async function loadRows(e?: FormEvent) {
     e?.preventDefault();
-    if (!token.trim()) {
+    const secret = normalizeBearerSecret(token);
+    if (!secret) {
       setError("Enter admin token.");
       return;
     }
@@ -56,7 +64,7 @@ export default function AdminWaitlistPage() {
     setError(null);
     try {
       const r = await fetch("/api/waitlist-admin", {
-        headers: { Authorization: `Bearer ${token.trim()}` },
+        headers: { Authorization: `Bearer ${secret}` },
       });
       if (r.status === 401) {
         setRows([]);
@@ -86,14 +94,15 @@ export default function AdminWaitlistPage() {
   }
 
   async function downloadCsv() {
-    if (!token.trim()) {
+    const secret = normalizeBearerSecret(token);
+    if (!secret) {
       setError("Enter admin token first.");
       return;
     }
     setError(null);
     try {
       const r = await fetch("/api/waitlist-export", {
-        headers: { Authorization: `Bearer ${token.trim()}` },
+        headers: { Authorization: `Bearer ${secret}` },
       });
       if (r.status === 401) {
         setError(

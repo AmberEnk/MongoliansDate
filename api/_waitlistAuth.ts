@@ -15,7 +15,9 @@ export function getBearerToken(req: { headers?: Record<string, string | string[]
 }
 
 export function getExpectedWaitlistToken(): string {
-  return String(process.env.WAITLIST_EXPORT_TOKEN ?? "").trim();
+  let s = String(process.env.WAITLIST_EXPORT_TOKEN ?? "").trim();
+  if (/^Bearer\s+/i.test(s)) s = s.replace(/^Bearer\s+/i, "").trim();
+  return s;
 }
 
 export function waitlistAdminAuthorized(req: { headers?: Record<string, string | string[] | undefined> }): boolean {
