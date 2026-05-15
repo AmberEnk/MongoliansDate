@@ -1,8 +1,9 @@
-/** Sanity check: `/api/waitlist-health` should return JSON (not Vercel FUNCTION_INVOCATION_FAILED). */
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getDbConnectionString } from "../lib/waitlistEnv";
 
-export function GET() {
-  return Response.json({
+/** GET /api/waitlist-health — should return JSON if Node handlers run correctly on Vercel. */
+export default function handler(_req: VercelRequest, res: VercelResponse) {
+  return res.status(200).json({
     ok: true,
     hasDatabaseUrl: getDbConnectionString().length > 0,
   });

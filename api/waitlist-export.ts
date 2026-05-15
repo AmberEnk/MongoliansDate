@@ -1,4 +1,5 @@
-import { getExpectedWaitlistToken, waitlistAdminAuthorizedRequest } from "../lib/waitlistAuth";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { getExpectedWaitlistToken, waitlistAdminAuthorized } from "../lib/waitlistAuth";
 import { getDbConnectionString, isUnsupportedForNodePg } from "../lib/waitlistEnv";
 
 function escapeCsv(value: unknown): string {
@@ -9,27 +10,29 @@ function escapeCsv(value: unknown): string {
   return v;
 }
 
-export async function GET(request: Request): Promise<Response> {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    if (!getExpectedWaitlistToken()) {
-      return Response.json({ error: "WAITLIST_EXPORT_TOKEN is not set on the server." }, { status: 503 });
+    if (req.method !== "GET") {
+      res.setHeader("Allow", "GET");
+      return res.status(405).json({ error: "Method not allowed." });
     }
 
-    if (!waitlistAdminAuthorizedRequest(request)) {
-      return Response.json({ error: "Unauthorized." }, { status: 401 });
+    if (!getExpectedWaitlistToken()) {
+      return res.status(503).json({ error: "WAITLIST_EXPORT_TOKEN is not set on the server." });
+    }
+
+    if (!waitlistAdminAuthorized({ headers: req.headers as any })) {
+      return res.status(401).json({ error: "Unauthorized." });
     }
 
     if (!getDbConnectionString()) {
-      return Response.json({ error: "Database is not configured." }, { status: 500 });
+      return res.status(500).json({ error: "Database is not configured." });
     }
     if (isUnsupportedForNodePg(getDbConnectionString())) {
-      return Response.json(
-        {
-          error:
-            "POSTGRES_URL must be a direct Postgres connection. Prisma Accelerate / prisma.io URLs do not work with this waitlist API.",
-        },
-        { status: 503 }
-      );
+      return res.status(503).json({
+        error:
+          "POSTGRES_URL must be a direct Postgres connection. Prisma Accelerate / prisma.io URLs do not work with this waitlist API.",
+      });
     }
 
     const { ensureWaitlistTable, waitlistQuery } = await import("./_db");
@@ -61,16 +64,13 @@ export async function GET(request: Request): Promise<Response> {
       );
     }
 
-    const body = lines.join("\n");
-    return new Response(body, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": 'attachment; filename="waitlist-export.csv"',
-      },
-    });
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", 'attachment; filename="waitlist-export.csv"');
+    return res.status(200).send(lines.join("\n"));
   } catch (error) {
     console.error("waitlist export failed", error);
-    return Response.json({ error: "Server error." }, { status: 500 });
+    if (!res.headersSent) {
+      return res.status(500).json({ error: "Server error." });
+    }
   }
 }
