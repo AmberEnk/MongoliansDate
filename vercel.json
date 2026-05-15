@@ -1,5 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/ping.ts": { "includeFiles": "api/_lib/**" },
+    "api/waitlist.ts": { "includeFiles": ["api/_lib/**", "api/_db.ts"] },
+    "api/waitlist-admin.ts": { "includeFiles": ["api/_lib/**", "api/_db.ts"] },
+    "api/waitlist-export.ts": { "includeFiles": ["api/_lib/**", "api/_db.ts"] },
+    "api/waitlist-health.ts": { "includeFiles": "api/_lib/**" }
+  },
   "rewrites": [
     {
       "source": "/((?!api/).*)",
