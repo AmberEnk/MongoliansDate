@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-/** Inline env probes only — avoids bundling `./_lib` so `/api/ping` stays a minimal health probe. */
+/** Inline env probes only — avoids importing shared DB helpers so `/api/ping` stays a minimal health probe. */
 function dbEnvPresence(): Record<string, boolean> {
   const s = (k: keyof NodeJS.ProcessEnv) => Boolean(String(process.env[k] ?? "").trim());
   return {

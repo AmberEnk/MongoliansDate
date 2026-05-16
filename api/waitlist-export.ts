@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getExpectedWaitlistToken, waitlistAdminAuthorized } from "./_lib/waitlistAuth";
-import { getDbConnectionString, isUnsupportedForNodePg } from "./_lib/waitlistEnv";
+import { getExpectedWaitlistToken, waitlistAdminAuthorized } from "./shared/waitlistAuth";
+import { getDbConnectionString, isUnsupportedForNodePg } from "./shared/waitlistEnv";
 
 function escapeCsv(value: unknown): string {
   const v = value == null ? "" : String(value);

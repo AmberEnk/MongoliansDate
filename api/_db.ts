@@ -1,4 +1,4 @@
-import { getDbConnectionString, isUnsupportedForNodePg } from "./_lib/waitlistEnv";
+import { getDbConnectionString, isUnsupportedForNodePg } from "./shared/waitlistEnv";
 
 /** Deferred: static `import "pg"` broke some Vercel bundles (FUNCTION_INVOCATION_FAILED at cold start). */
 let pgPool: any = null;
