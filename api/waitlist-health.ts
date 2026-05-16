@@ -1,10 +1,14 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getDbConnectionString } from "./_lib/waitlistEnv";
 
-/** GET /api/waitlist-health — should return JSON if Node handlers run correctly on Vercel. */
 export default function handler(_req: VercelRequest, res: VercelResponse) {
+  const flags = {
+    POSTGRES_URL: Boolean(String(process.env.POSTGRES_URL ?? "").trim()),
+    PRISMA_DATABASE_URL: Boolean(String(process.env.PRISMA_DATABASE_URL ?? "").trim()),
+    DATABASE_URL: Boolean(String(process.env.DATABASE_URL ?? "").trim()),
+  };
   return res.status(200).json({
     ok: true,
-    hasDatabaseUrl: getDbConnectionString().length > 0,
+    hasDatabaseUrl: Object.values(flags).some(Boolean),
+    dbEnvPresence: flags,
   });
 }

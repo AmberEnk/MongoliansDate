@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { ensureWaitlistTable, waitlistQuery } from "./_db";
 import { getExpectedWaitlistToken, waitlistAdminAuthorized } from "./_lib/waitlistAuth";
 import { getDbConnectionString, isUnsupportedForNodePg } from "./_lib/waitlistEnv";
 
@@ -34,8 +35,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "Database URL must be direct Postgres (e.g. postgres://…@db.prisma.io/…). Prisma Accelerate (prisma+postgres / prisma://) URLs do not work with this waitlist API.",
       });
     }
-
-    const { ensureWaitlistTable, waitlistQuery } = await import("./_db");
 
     await ensureWaitlistTable();
 

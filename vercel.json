@@ -1,11 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "api/ping.ts": { "includeFiles": "api/_lib/**" },
-    "api/waitlist.ts": { "includeFiles": "api/**" },
-    "api/waitlist-admin.ts": { "includeFiles": "api/**" },
-    "api/waitlist-export.ts": { "includeFiles": "api/**" },
-    "api/waitlist-health.ts": { "includeFiles": "api/_lib/**" }
+    "api/ping.ts": { "maxDuration": 10 },
+    "api/waitlist-health.ts": { "maxDuration": 10 },
+    "api/waitlist.ts": { "maxDuration": 25 },
+    "api/waitlist-admin.ts": { "maxDuration": 25 },
+    "api/waitlist-export.ts": { "maxDuration": 25 }
   },
   "rewrites": [
     {
