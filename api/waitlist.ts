@@ -1,6 +1,48 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getDbConnectionString, isUnsupportedForNodePg } from "./shared/waitlistEnv";
-import { parseJsonBody } from "./shared/parseJsonBody";
+
+/** === waitlistEnv (inlined) === */
+function connectionCandidates(): string[] {
+  return [
+    process.env.POSTGRES_URL,
+    process.env.PRISMA_DATABASE_URL,
+    process.env.POSTGRES_URL_NON_POOLING,
+    process.env.DATABASE_URL_UNPOOLED,
+    process.env.DIRECT_URL,
+    process.env.DATABASE_URL,
+  ]
+    .map((s) => String(s ?? "").trim())
+    .filter((s) => s.length > 0);
+}
+function getDbConnectionString(): string {
+  const list = connectionCandidates();
+  const direct = list.find((u) => !isUnsupportedForNodePg(u));
+  if (direct) return direct;
+  return list[0] ?? "";
+}
+function isUnsupportedForNodePg(url: string): boolean {
+  if (!url) return false;
+  const u = url.toLowerCase();
+  if (u.startsWith("prisma+postgres:") || u.startsWith("prisma://")) return true;
+  return u.includes("prisma-data.net") || u.includes("prisma-data.in") || u.includes("accelerate.prisma");
+}
+
+/** === parseJsonBody (inlined) === */
+function parseJsonBody(req: { body?: unknown }): Record<string, unknown> {
+  const raw = req.body;
+  if (raw != null && typeof raw === "object" && !Buffer.isBuffer(raw) && !Array.isArray(raw)) {
+    return raw as Record<string, unknown>;
+  }
+  let text: string;
+  if (Buffer.isBuffer(raw)) text = raw.toString("utf8");
+  else if (typeof raw === "string") text = raw;
+  else return {};
+  try {
+    const o = JSON.parse(text) as unknown;
+    return o != null && typeof o === "object" && !Array.isArray(o) ? (o as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
@@ -54,7 +96,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const { ensureWaitlistTable, waitlistQuery } = await import("./shared/waitlistDb");
+    const { ensureWaitlistTable, waitlistQuery } = await import("./waitlistDb");
 
     await ensureWaitlistTable();
 

@@ -3,9 +3,9 @@
   "functions": {
     "api/ping.ts": { "maxDuration": 10 },
     "api/waitlist-health.ts": { "maxDuration": 10 },
-    "api/waitlist.ts": { "maxDuration": 25, "includeFiles": "api/shared/**" },
-    "api/waitlist-admin.ts": { "maxDuration": 25, "includeFiles": "api/shared/**" },
-    "api/waitlist-export.ts": { "maxDuration": 25, "includeFiles": "api/shared/**" }
+    "api/waitlist.ts": { "maxDuration": 25, "includeFiles": "api/waitlistDb.ts" },
+    "api/waitlist-admin.ts": { "maxDuration": 25, "includeFiles": "api/waitlistDb.ts" },
+    "api/waitlist-export.ts": { "maxDuration": 25, "includeFiles": "api/waitlistDb.ts" }
   },
   "rewrites": [
     {

@@ -1,6 +1,40 @@
-import { getDbConnectionString, isUnsupportedForNodePg } from "./waitlistEnv";
+/**
+ * Postgres access for waitlist endpoints only.
+ *
+ * Former `waitlistEnv` helpers live here too so this file does not depend on
+ * `./shared/*` — Vercel’s multi-file lambdas omit those sibling modules from the ZIP.
+ */
 
-/** Deferred: avoid static literal `import("pg"/neon)` — esbuild/Vercel inlines drivers into unrelated routes (~400KB) and Neon’s WebSocket path can crash cold starts before your handler runs. */
+function connectionCandidates(): string[] {
+  return [
+    process.env.POSTGRES_URL,
+    process.env.PRISMA_DATABASE_URL,
+    process.env.POSTGRES_URL_NON_POOLING,
+    process.env.DATABASE_URL_UNPOOLED,
+    process.env.DIRECT_URL,
+    process.env.DATABASE_URL,
+  ]
+    .map((s) => String(s ?? "").trim())
+    .filter((s) => s.length > 0);
+}
+
+function isUnsupportedForNodePg(url: string): boolean {
+  if (!url) return false;
+  const u = url.toLowerCase();
+  if (u.startsWith("prisma+postgres:") || u.startsWith("prisma://")) {
+    return true;
+  }
+  return u.includes("prisma-data.net") || u.includes("prisma-data.in") || u.includes("accelerate.prisma");
+}
+
+function getDbConnectionString(): string {
+  const list = connectionCandidates();
+  const direct = list.find((u) => !isUnsupportedForNodePg(u));
+  if (direct) return direct;
+  return list[0] ?? "";
+}
+
+/** Deferred: avoid static literal `import("pg"/neon)` — esbuild may inline drivers into unrelated routes. */
 let pgPool: any = null;
 let neonSql: any = null;
 let neonBoundUrl: string | null = null;
@@ -22,9 +56,6 @@ async function importNeonModule(): Promise<typeof import("@neondatabase/serverle
   return import(spec);
 }
 
-/**
- * Neon: `neon()` over HTTP. Everyone else: `pg` over TCP (not `@neondatabase/serverless` Pool for non-Neon hosts).
- */
 export async function waitlistQuery(text: string, params: unknown[] = []): Promise<{ rows: any[] }> {
   const connection = getDbConnectionString();
   if (!connection) {

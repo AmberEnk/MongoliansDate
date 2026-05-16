@@ -1,6 +1,53 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getExpectedWaitlistToken, waitlistAdminAuthorized } from "./shared/waitlistAuth";
-import { getDbConnectionString, isUnsupportedForNodePg } from "./shared/waitlistEnv";
+
+/** === waitlistEnv (inlined) === */
+function connectionCandidates(): string[] {
+  return [
+    process.env.POSTGRES_URL,
+    process.env.PRISMA_DATABASE_URL,
+    process.env.POSTGRES_URL_NON_POOLING,
+    process.env.DATABASE_URL_UNPOOLED,
+    process.env.DIRECT_URL,
+    process.env.DATABASE_URL,
+  ]
+    .map((s) => String(s ?? "").trim())
+    .filter((s) => s.length > 0);
+}
+function getDbConnectionString(): string {
+  const list = connectionCandidates();
+  const direct = list.find((u) => !isUnsupportedForNodePg(u));
+  if (direct) return direct;
+  return list[0] ?? "";
+}
+function isUnsupportedForNodePg(url: string): boolean {
+  if (!url) return false;
+  const u = url.toLowerCase();
+  if (u.startsWith("prisma+postgres:") || u.startsWith("prisma://")) return true;
+  return u.includes("prisma-data.net") || u.includes("prisma-data.in") || u.includes("accelerate.prisma");
+}
+
+/** === waitlistAuth (inlined) === */
+function headerAuthorization(h: Record<string, string | string[] | undefined> | undefined): string {
+  if (!h) return "";
+  const v = h.authorization ?? h.Authorization;
+  const raw = (Array.isArray(v) ? v[0] : v) ?? "";
+  return String(raw).trim();
+}
+function getBearerToken(req: { headers?: Record<string, string | string[] | undefined> }): string {
+  const raw = headerAuthorization(req.headers);
+  if (/^Bearer\s+/i.test(raw)) return raw.replace(/^Bearer\s+/i, "").trim();
+  return raw;
+}
+function getExpectedWaitlistToken(): string {
+  let s = String(process.env.WAITLIST_EXPORT_TOKEN ?? "").trim();
+  if (/^Bearer\s+/i.test(s)) s = s.replace(/^Bearer\s+/i, "").trim();
+  return s;
+}
+function waitlistAdminAuthorized(req: { headers?: Record<string, string | string[] | undefined> }): boolean {
+  const got = getBearerToken(req);
+  const want = getExpectedWaitlistToken();
+  return want.length > 0 && got === want;
+}
 
 function escapeCsv(value: unknown): string {
   const v = value == null ? "" : String(value);
@@ -35,7 +82,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const { ensureWaitlistTable, waitlistQuery } = await import("./shared/waitlistDb");
+    const { ensureWaitlistTable, waitlistQuery } = await import("./waitlistDb");
 
     await ensureWaitlistTable();
 
