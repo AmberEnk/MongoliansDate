@@ -90,11 +90,11 @@
   "legal": {
     "terms": {
       "title": "Terms of Service",
-      "body": "<p>Placeholder terms. Replace with counsel-reviewed Terms before production.</p>"
+      "body": ""
     },
     "privacy": {
       "title": "Privacy Policy",
-      "body": "<p>Placeholder privacy notice (CCPA-conscious draft to be provided by counsel). Describe data collected, purposes, retention, sale/sharing, and how Californians exercise rights.</p>"
+      "body": ""
     },
     "guidelines": {
       "title": "Community guidelines",

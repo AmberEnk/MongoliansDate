@@ -4,6 +4,40 @@ import { initReactI18next } from "react-i18next";
 import en from "./locales/en.json";
 import mn from "./locales/mn.json";
 import mnMong from "./locales/mn-Mong.json";
+import { privacyPolicyBody, termsOfServiceBody } from "../legal/us-ca-en";
+
+const enTranslation = {
+  ...en,
+  legal: {
+    ...en.legal,
+    privacy: { ...en.legal.privacy, body: privacyPolicyBody },
+    terms: { ...en.legal.terms, body: termsOfServiceBody },
+  },
+};
+
+const mnLegalNotice =
+  '<p class="legal-notice">Бүрэн хуулийн бичвэр англи хэлээр бичигдсэн бөгөөд зөрүү гарвал англи хувилбар давуу эрхтэй. Дэлгэрэнгүйг харахын тулд сайтын хэлийг <strong>English</strong> болгоно уу, эсвэл <a href="mailto:contact@uchral.net">contact@uchral.net</a> хаягаар холбогдоно уу.</p>';
+
+const mnMongLegalNotice =
+  '<p class="legal-notice">ᠪᠦᠷᠢᠨ ᠬᠠᠤᠯᠢ ᠶᠢᠨ ᠪᠢᠴᠢᠭ ᠠᠩᠭᠯᠢ ᠬᠡᠯᠡᠨ ᠪᠢᠴᠢᠭᠰᠡᠨ ᠃ ᠵᠠᠭᠰᠠᠯ ᠭᠠᠷᠪᠠ ᠪᠣᠯ ᠠᠩᠭᠯᠢ ᠬᠡᠪᠯᠡᠯ ᠳᠡᠭᠡᠷ᠎ᠡ ᠃ <strong>English</strong> ᠬᠡᠯᠡ ᠰᠣᠩᠭᠣᠨ᠎ᠤ ᠤᠶᠠᠷ ᠡᠰᠡᠬᠦ ᠪᠤᠶᠤ <a href="mailto:contact@uchral.net">contact@uchral.net</a> ᠳ᠋ᠤ ᠬᠣᠯᠪᠣᠭᠠᠷᠠᠢ᠃</p>';
+
+const mnTranslation = {
+  ...mn,
+  legal: {
+    ...mn.legal,
+    privacy: { ...mn.legal.privacy, body: mnLegalNotice + privacyPolicyBody },
+    terms: { ...mn.legal.terms, body: mnLegalNotice + termsOfServiceBody },
+  },
+};
+
+const mnMongTranslation = {
+  ...mnMong,
+  legal: {
+    ...mnMong.legal,
+    privacy: { ...mnMong.legal.privacy, body: mnMongLegalNotice + privacyPolicyBody },
+    terms: { ...mnMong.legal.terms, body: mnMongLegalNotice + termsOfServiceBody },
+  },
+};
 
 /** Admin routes set their own `document.title`; don't clobber on i18n init/language change. */
 function shouldKeepRouteManagedTitle(): boolean {
@@ -16,9 +50,9 @@ void i18n
   .use(initReactI18next)
   .init({
     resources: {
-      en: { translation: en },
-      mn: { translation: mn },
-      "mn-Mong": { translation: mnMong },
+      en: { translation: enTranslation },
+      mn: { translation: mnTranslation },
+      "mn-Mong": { translation: mnMongTranslation },
     },
     fallbackLng: "en",
     supportedLngs: ["en", "mn", "mn-Mong"],

@@ -384,6 +384,7 @@ textarea {
 
 .legal-body {
   line-height: 1.65;
+  max-width: 42rem;
 }
 
 .legal-body p {
@@ -392,6 +393,39 @@ textarea {
 
 .legal-body p:last-child {
   margin-bottom: 0;
+}
+
+.legal-body h2 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.legal-body h2:first-child {
+  margin-top: 0;
+}
+
+.legal-body ul {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.legal-body li {
+  margin-bottom: 0.35rem;
+}
+
+.legal-body a {
+  color: var(--color-love);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.legal-notice {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem !important;
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-love-soft, rgba(255, 200, 220, 0.25));
+  font-size: 0.95rem;
 }
 
 .btn {
