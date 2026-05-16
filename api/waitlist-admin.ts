@@ -32,7 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const { ensureWaitlistTable, waitlistQuery } = await import("./waitlistDb");
+    const { ensureWaitlistTable, waitlistQuery } = await import("./shared/waitlistDb");
 
     await ensureWaitlistTable();
 

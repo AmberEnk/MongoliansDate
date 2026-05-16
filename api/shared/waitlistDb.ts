@@ -1,4 +1,4 @@
-import { getDbConnectionString, isUnsupportedForNodePg } from "./shared/waitlistEnv";
+import { getDbConnectionString, isUnsupportedForNodePg } from "./waitlistEnv";
 
 /** Deferred: avoid static literal `import("pg"/neon)` — esbuild/Vercel inlines drivers into unrelated routes (~400KB) and Neon’s WebSocket path can crash cold starts before your handler runs. */
 let pgPool: any = null;

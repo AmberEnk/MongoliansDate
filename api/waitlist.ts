@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getDbConnectionString, isUnsupportedForNodePg } from "./shared/waitlistEnv";
-import { parseJsonBody } from "./parseJsonBody";
+import { parseJsonBody } from "./shared/parseJsonBody";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
@@ -54,7 +54,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const { ensureWaitlistTable, waitlistQuery } = await import("./waitlistDb");
+    const { ensureWaitlistTable, waitlistQuery } = await import("./shared/waitlistDb");
 
     await ensureWaitlistTable();
 
