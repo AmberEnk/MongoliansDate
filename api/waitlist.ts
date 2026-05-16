@@ -54,7 +54,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const { ensureWaitlistTable, waitlistQuery } = await import("./_db");
+    const { ensureWaitlistTable, waitlistQuery } = await import("./waitlistDb");
 
     await ensureWaitlistTable();
 

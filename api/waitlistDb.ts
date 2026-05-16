@@ -1,6 +1,6 @@
 import { getDbConnectionString, isUnsupportedForNodePg } from "./shared/waitlistEnv";
 
-/** Deferred: static `import "pg"` broke some Vercel bundles (FUNCTION_INVOCATION_FAILED at cold start). */
+/** Deferred: avoid static literal `import("pg"/neon)` — esbuild/Vercel inlines drivers into unrelated routes (~400KB) and Neon’s WebSocket path can crash cold starts before your handler runs. */
 let pgPool: any = null;
 let neonSql: any = null;
 let neonBoundUrl: string | null = null;
@@ -10,6 +10,16 @@ function shouldUseNeonHttp(url: string): boolean {
   if (String(process.env.UCHRAL_USE_NEON_HTTP || "").trim() === "1") return true;
   const u = url.toLowerCase();
   return u.includes("neon.tech") || u.includes("api.neon.tech") || u.includes(".neon.build");
+}
+
+async function importPgModule(): Promise<typeof import("pg")> {
+  const spec = "pg";
+  return import(spec);
+}
+
+async function importNeonModule(): Promise<typeof import("@neondatabase/serverless")> {
+  const spec = "@neondatabase/serverless";
+  return import(spec);
 }
 
 /**
@@ -23,7 +33,7 @@ export async function waitlistQuery(text: string, params: unknown[] = []): Promi
 
   if (shouldUseNeonHttp(connection)) {
     if (!neonSql || neonBoundUrl !== connection) {
-      const { neon } = await import("@neondatabase/serverless");
+      const { neon } = await importNeonModule();
       neonSql = neon(connection, { fullResults: true });
       neonBoundUrl = connection;
     }
@@ -32,7 +42,7 @@ export async function waitlistQuery(text: string, params: unknown[] = []): Promi
   }
 
   if (!pgPool) {
-    const { Pool } = await import("pg");
+    const { Pool } = await importPgModule();
     const low = connection.toLowerCase();
     const ssl =
       low.includes("sslmode=require") ||
