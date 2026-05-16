@@ -1,8 +1,7 @@
-import { Pool } from "pg";
 import { getDbConnectionString, isUnsupportedForNodePg } from "./_lib/waitlistEnv";
 
-/** Standard Postgres TCP pool (Prisma Postgres, Supabase, Vercel Postgres, etc.). */
-let pgPool: Pool | null = null;
+/** Deferred: static `import "pg"` broke some Vercel bundles (FUNCTION_INVOCATION_FAILED at cold start). */
+let pgPool: any = null;
 let neonSql: any = null;
 let neonBoundUrl: string | null = null;
 
@@ -14,7 +13,7 @@ function shouldUseNeonHttp(url: string): boolean {
 }
 
 /**
- * Neon: `neon()` over HTTP. Everyone else: `pg` over TCP (do not use `@neondatabase/serverless` Pool for non-Neon hosts — it targets Neon's WebSocket proxy and crashes on e.g. db.prisma.io).
+ * Neon: `neon()` over HTTP. Everyone else: `pg` over TCP (not `@neondatabase/serverless` Pool for non-Neon hosts).
  */
 export async function waitlistQuery(text: string, params: unknown[] = []): Promise<{ rows: any[] }> {
   const connection = getDbConnectionString();
@@ -33,6 +32,7 @@ export async function waitlistQuery(text: string, params: unknown[] = []): Promi
   }
 
   if (!pgPool) {
+    const { Pool } = await import("pg");
     const low = connection.toLowerCase();
     const ssl =
       low.includes("sslmode=require") ||
