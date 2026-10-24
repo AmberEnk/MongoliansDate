@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="mn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Uchral — нээлт</title>
+    <link rel="icon" href="uchral-friends-48.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant:wght@600;700&family=Noto+Sans:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --sky: #0b5ea8;
+        --sky-deep: #073a6b;
+        --gold: #c9a000;
+        --red: #c8102e;
+        --text: #122033;
+        --muted: #4a5a6a;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        height: 100%;
+        font-family: "Noto Sans", system-ui, sans-serif;
+        color: var(--text);
+        background: #e7f3ff;
+      }
+      .deck {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background:
+          radial-gradient(90% 70% at 8% 0%, rgba(240, 196, 0, 0.28), transparent 50%),
+          radial-gradient(80% 60% at 100% 0%, rgba(200, 16, 46, 0.16), transparent 48%),
+          linear-gradient(160deg, #e7f3ff, #fff8dc 55%, #d6ebff);
+      }
+      .slides { flex: 1; position: relative; overflow: hidden; }
+      .slide {
+        display: none;
+        height: 100%;
+        padding: 4.5rem 6vw 5.5rem;
+        align-items: center;
+        justify-content: center;
+      }
+      .slide.is-on { display: flex; }
+      .inner { width: min(58rem, 100%); }
+      .flag {
+        height: 6px;
+        background: linear-gradient(90deg, var(--sky) 0 36%, #ffd000 36% 64%, var(--red) 64% 100%);
+      }
+      h1, h2 {
+        font-family: "Cormorant", Georgia, serif;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.6rem;
+        color: var(--sky-deep);
+        line-height: 1.12;
+      }
+      h1 { font-size: clamp(2.4rem, 6vw, 4.4rem); }
+      h2 { font-size: clamp(2rem, 4.6vw, 3.3rem); color: var(--red); }
+      .en { margin: 0 0 1.4rem; color: var(--muted); font-size: 1.05rem; }
+      p.lead { font-size: clamp(1.15rem, 2.2vw, 1.55rem); line-height: 1.45; margin: 0; max-width: 40rem; }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        margin-bottom: 1.4rem;
+      }
+      .brand img {
+        width: 7.2rem;
+        height: 7.2rem;
+        object-fit: contain;
+        background: #fff;
+        border-radius: 50%;
+        box-shadow: 0 0 0 4px #ffd000, 0 0 0 8px var(--sky), 0 0 0 12px var(--red);
+      }
+      .brand .name { font-weight: 800; letter-spacing: 0.18em; font-size: 1.15rem; }
+      .brand .tag { color: var(--gold); font-weight: 700; letter-spacing: 0.28em; font-size: 0.72rem; }
+      .brand .mn { color: var(--red); font-weight: 700; margin-top: 0.25rem; }
+      ul.points {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 0.85rem;
+        font-size: clamp(1.1rem, 2vw, 1.4rem);
+      }
+      ul.points li {
+        background: rgba(255,255,255,0.78);
+        border-left: 5px solid var(--sky);
+        padding: 0.85rem 1.1rem;
+        border-radius: 12px;
+      }
+      ul.points li:nth-child(2) { border-left-color: #f0c400; }
+      ul.points li:nth-child(3) { border-left-color: var(--red); }
+      ul.points li:nth-child(4) { border-left-color: var(--sky); }
+      .url {
+        display: inline-block;
+        margin-top: 1.4rem;
+        font-weight: 800;
+        font-size: clamp(1.3rem, 3vw, 2rem);
+        color: var(--sky-deep);
+        text-decoration: none;
+        letter-spacing: 0.02em;
+      }
+      .bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.55rem 1.1rem 0.75rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .bar button {
+        font: inherit;
+        font-weight: 700;
+        border: 0;
+        background: #fff;
+        color: var(--sky-deep);
+        padding: 0.4rem 0.8rem;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+      .hint { opacity: 0.8; flex: 1; text-align: center; }
+      .langs { display: flex; gap: 0.65rem; font-weight: 700; }
+      .langs a { color: var(--sky-deep); text-decoration: none; }
+      .langs a.is-on { color: var(--red); }
+      @media (max-width: 700px) {
+        .slide { padding: 2.2rem 1.1rem 4.5rem; }
+        .brand img { width: 4.6rem; height: 4.6rem; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="deck">
+      <div class="flag"></div>
+      <div class="slides" id="slides">
+        <section class="slide is-on">
+          <div class="inner">
+            <div class="brand">
+              <img src="uchral-logo.png" alt="" />
+              <div>
+                <div class="name">UCHRAL</div>
+                <div class="tag">NETWORKING</div>
+                <div class="mn">УЧРАЛ СҮЛЖЭЭ</div>
+              </div>
+            </div>
+            <h1>Одоо нээгдлээ</h1>
+            <p class="en">It’s live.</p>
+            <p class="lead">Монголчуудын Reddit. Хотын бүлэг, асуулт, мэдээ, өдөр тутмын яриа.</p>
+            <a class="url" href="https://uchral.net">uchral.net</a>
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="inner">
+            <h2>Яагаад?</h2>
+            <p class="en">Why this exists</p>
+            <p class="lead">Том хотод ч монгол хүнтэй таарах нь хэцүү. Англи Reddit дээр бидний яриа төвд байдаггүй. Uchral бол зөвхөн бидэнд зориулсан орон зай.</p>
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="inner">
+            <h2>Энэ юу вэ?</h2>
+            <p class="en">What it is</p>
+            <ul class="points">
+              <li>Уншихад бүртгэл хэрэггүй</li>
+              <li>Бичих, хариулах, бүлэг нээхийн тулд бүртгүүлнэ</li>
+              <li>18+</li>
+              <li>App Store байхгүй — утсан дээрээ нээгээд үндсэн дэлгэцэнд нэмнэ</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="inner">
+            <h2>Юу хийж болох вэ?</h2>
+            <p class="en">What you can do</p>
+            <ul class="points">
+              <li>Нүүр, Эрэлттэй, Мэдээ — Reddit шиг урсгал</li>
+              <li>Нээх — хот, сэдвийн бүлгүүд</li>
+              <li>Миний — өөрийн бүлэг, постууд</li>
+              <li>Танилцах — зар, заавал биш</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="inner">
+            <h2>Танилцах нь сонголт</h2>
+            <p class="en">Dating is optional</p>
+            <p class="lead">Uchral бол болзооны апп биш. Хүсвэл богино зар тавина. Гол нь яриа, асуулт, хотын бүлэг.</p>
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="inner">
+            <h2>Одоо туршина уу</h2>
+            <p class="en">Try it with me</p>
+            <ul class="points">
+              <li>uchral.net нээнэ</li>
+              <li>Бүртгүүлнэ — 10+ тэмдэгттэй нууц үг</li>
+              <li>Нэг асуулт бичнэ, эсвэл хотын бүлэгт орно</li>
+              <li>Заавар → үндсэн дэлгэцэнд нэмнэ</li>
+            </ul>
+            <a class="url" href="https://uchral.net" target="_blank" rel="noreferrer">Open uchral.net</a>
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="inner">
+            <div class="brand">
+              <img src="uchral-logo.png" alt="" />
+              <div>
+                <div class="name">UCHRAL</div>
+                <div class="tag">NETWORKING</div>
+                <div class="mn">УЧРАЛ СҮЛЖЭЭ</div>
+              </div>
+            </div>
+            <h1>Та нар эхлээд бичнэ</h1>
+            <p class="en">You’re the first voices.</p>
+            <p class="lead">Хотын асуулт, ажил, хоол, гэртээ монгол хэл. Жинхэнэ яриа л энэ газрыг амьдруулна.</p>
+            <a class="url" href="https://uchral.net">uchral.net</a>
+          </div>
+        </section>
+      </div>
+      <div class="bar">
+        <button type="button" id="prev">←</button>
+        <span class="hint" id="pos">1 / 7 · зай / сум</span>
+        <nav class="langs" aria-label="Language">
+          <a href="pitch-mn.html" class="is-on">Монгол</a>
+          <a href="pitch-en.html">English</a>
+        </nav>
+        <button type="button" id="next">→</button>
+      </div>
+      <div class="flag"></div>
+    </div>
+    <script>
+      const slides = [...document.querySelectorAll(".slide")];
+      let i = 0;
+      function show(n) {
+        i = (n + slides.length) % slides.length;
+        slides.forEach((s, k) => s.classList.toggle("is-on", k === i));
+        document.getElementById("pos").textContent = i + 1 + " / " + slides.length + " · space / arrows";
+      }
+      document.getElementById("prev").onclick = () => show(i - 1);
+      document.getElementById("next").onclick = () => show(i + 1);
+      document.addEventListener("keydown", (e) => {
+        if (["ArrowRight", " ", "PageDown", "Enter"].includes(e.key)) { e.preventDefault(); show(i + 1); }
+        if (["ArrowLeft", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); show(i - 1); }
+      });
+      let x0 = null;
+      document.addEventListener("touchstart", (e) => { x0 = e.changedTouches[0].screenX; }, { passive: true });
+      document.addEventListener("touchend", (e) => {
+        if (x0 == null) return;
+        const dx = e.changedTouches[0].screenX - x0;
+        if (dx < -40) show(i + 1);
+        if (dx > 40) show(i - 1);
+        x0 = null;
+      });
+    </script>
+  </body>
+</html>
