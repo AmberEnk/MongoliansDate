@@ -1,11 +1,11 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import InstallPrompt from "./InstallPrompt";
 
 export default function AppShell() {
-  const { loggedIn, logout } = useAuth();
+  const { loggedIn, logout, user, ready } = useAuth();
   const { t } = useTranslation();
   const nav = useNavigate();
 
@@ -14,18 +14,51 @@ export default function AppShell() {
     nav("/");
   }
 
+  const tabs = [
+    { to: "/", label: t("forum.home"), end: true },
+    { to: "/popular", label: t("forum.popular") },
+    { to: "/news", label: t("forum.news") },
+    { to: "/explore", label: t("forum.explore") },
+    { to: "/dating", label: t("forum.dating") },
+  ];
+
   return (
     <div className="app">
       <header className="app-header">
-        <div className="lang-bar">
-          {loggedIn ? (
-            <button type="button" className="btn secondary lang-bar__logout" onClick={() => void onSignOut()}>
-              {t("common.signOut")}
-            </button>
-          ) : (
-            <span className="lang-bar__spacer" aria-hidden />
-          )}
-          <LanguageSwitcher />
+        <div className="lang-bar forum-topbar">
+          <NavLink to="/" className="brand-link">
+            Uchral
+          </NavLink>
+          <nav className="forum-tabs" aria-label={t("forum.mainNav")}>
+            {tabs.map((tab) => (
+              <NavLink key={tab.to} to={tab.to} end={tab.end} className={({ isActive }) => (isActive ? "is-active" : "")}>
+                {tab.label}
+              </NavLink>
+            ))}
+          </nav>
+          <div className="forum-topbar__actions">
+            <NavLink to="/communities/new" className="btn secondary start-community-btn">
+              {t("forum.startCommunity")}
+            </NavLink>
+            {ready && loggedIn ? (
+              <>
+                <span className="muted forum-user">{user?.displayName}</span>
+                <button type="button" className="btn secondary lang-bar__logout" onClick={() => void onSignOut()}>
+                  {t("common.signOut")}
+                </button>
+              </>
+            ) : ready ? (
+              <>
+                <NavLink to="/login" className="btn secondary">
+                  {t("home.signIn")}
+                </NavLink>
+                <NavLink to="/register" className="btn">
+                  {t("register.signUp")}
+                </NavLink>
+              </>
+            ) : null}
+            <LanguageSwitcher />
+          </div>
         </div>
       </header>
       <main className="app-main">

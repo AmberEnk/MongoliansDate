@@ -16,31 +16,27 @@ export default function LoginPage() {
     setErr(null);
     try {
       await login(email, password);
-      nav("/discover");
+      nav("/");
     } catch (er) {
       setErr(er instanceof Error ? er.message : "Failed");
     }
   }
 
   return (
-    <div className="layout">
+    <div className="forum-page">
       <h1>{t("login.title")}</h1>
-      <form onSubmit={onSubmit} className="card">
+      <p className="subtle-hint">{t("forum.loginHint")}</p>
+      <form onSubmit={(e) => void onSubmit(e)} className="card composer">
         <label>
           {t("common.email")}
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </label>
         <label>
           {t("common.password")}
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </label>
         {err && <p className="err">{err}</p>}
-        <button type="submit" className="btn" style={{ marginTop: "0.75rem" }}>
+        <button type="submit" className="btn">
           {t("common.continue")}
         </button>
       </form>

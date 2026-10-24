@@ -1,40 +1,65 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
-import * as store from "../localStore";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import * as forum from "../forum/api";
+import type { ForumUser } from "../forum/types";
 
 type AuthState = {
   ready: boolean;
   loggedIn: boolean;
+  user: ForumUser | null;
   refresh: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
+  register: (input: { email: string; password: string; displayName: string; birthdate: string }) => Promise<void>;
   logout: () => Promise<void>;
 };
 
 const Ctx = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [tick, setTick] = useState(0);
+  const [ready, setReady] = useState(false);
+  const [user, setUser] = useState<ForumUser | null>(null);
 
   const refresh = useCallback(async () => {
-    setTick((n) => n + 1);
+    try {
+      if (!forum.getToken()) {
+        setUser(null);
+        return;
+      }
+      setUser(await forum.fetchMe());
+    } catch {
+      forum.setToken(null);
+      setUser(null);
+    } finally {
+      setReady(true);
+    }
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const r = store.loginUser(email, password);
-    if (!r.ok) throw new Error(r.error);
-    await refresh();
+  useEffect(() => {
+    void refresh();
   }, [refresh]);
+
+  const login = useCallback(async (email: string, password: string) => {
+    const r = await forum.login(email, password);
+    forum.setToken(r.token);
+    setUser(r.user);
+  }, []);
+
+  const register = useCallback(
+    async (input: { email: string; password: string; displayName: string; birthdate: string }) => {
+      const r = await forum.register(input);
+      forum.setToken(r.token);
+      setUser(r.user);
+    },
+    []
+  );
 
   const logout = useCallback(async () => {
-    store.logoutUser();
-    await refresh();
-  }, [refresh]);
-
-  const loggedIn = !!store.getCurrentUser();
-  const ready = true;
+    await forum.logout();
+    setUser(null);
+  }, []);
 
   const v = useMemo(
-    () => ({ ready, loggedIn, refresh, login, logout }),
-    [ready, loggedIn, refresh, login, logout, tick]
+    () => ({ ready, loggedIn: !!user, user, refresh, login, register, logout }),
+    [ready, user, refresh, login, register, logout]
   );
 
   return <Ctx.Provider value={v}>{children}</Ctx.Provider>;

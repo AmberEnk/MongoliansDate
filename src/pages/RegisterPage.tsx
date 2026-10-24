@@ -1,89 +1,57 @@
 import { FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import * as store from "../localStore";
+import { useAuth } from "../auth/AuthContext";
 
 export default function RegisterPage() {
+  const { register } = useAuth();
   const { t } = useTranslation();
+  const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [birthdate, setBirthdate] = useState("1995-01-01");
-  const [laFounding, setLaFounding] = useState(true);
-  const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const LETTER_NUMBER_SPACE_ONLY = /^[\p{L}\p{N} ]+$/u;
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setErr(null);
-    setMsg(null);
     if (!LETTER_NUMBER_SPACE_ONLY.test(displayName.trim())) {
-      setErr("Display name can only contain letters and numbers.");
+      setErr(t("register.nameRule"));
       return;
     }
-    const r = store.registerUser({
-      email,
-      password,
-      displayName,
-      birthdate,
-      optInLaFoundingMember: laFounding,
-    });
-    if (!r.ok) {
-      setErr(r.error);
-      return;
+    try {
+      await register({ email, password, displayName, birthdate });
+      nav("/");
+    } catch (er) {
+      setErr(er instanceof Error ? er.message : t("forum.saveFail"));
     }
-    setMsg(t("register.verifyEmailDev"));
   }
 
   return (
-    <div className="layout">
+    <div className="forum-page">
       <h1>{t("register.title")}</h1>
-      <p className="subtle-hint">{t("register.subtitle")}</p>
-      <form onSubmit={onSubmit} className="card">
+      <p className="subtle-hint">{t("register.communitySubtitle")}</p>
+      <form onSubmit={(e) => void onSubmit(e)} className="card composer">
         <label>
           {t("common.email")}
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </label>
         <label>
           {t("register.passwordHint")}
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={10}
-          />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={10} />
         </label>
         <label>
           {t("register.displayName")}
-          <input
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            required
-            title="Letters and numbers only"
-          />
+          <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
         </label>
         <label>
           {t("register.birthdate")}
-          <input
-            type="date"
-            value={birthdate}
-            onChange={(e) => setBirthdate(e.target.value)}
-            required
-          />
-        </label>
-        <label className="row">
-          <input
-            type="checkbox"
-            checked={laFounding}
-            onChange={(e) => setLaFounding(e.target.checked)}
-          />
-          {t("register.laFounding")}
+          <input type="date" value={birthdate} onChange={(e) => setBirthdate(e.target.value)} required />
         </label>
         {err && <p className="err">{err}</p>}
-        {msg && <p>{msg}</p>}
-        <button type="submit" className="btn" style={{ marginTop: "0.75rem" }}>
+        <button type="submit" className="btn">
           {t("register.signUp")}
         </button>
       </form>

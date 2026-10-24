@@ -14,7 +14,7 @@ export const LA_METRO_DEFAULT = {
   label: "Los Angeles metro",
 } as const;
 
-/** When true: hide signup/login UI, gate auth routes — landing is waitlist-only for demand validation. Flip to false to reopen accounts. */
-export const WAITLIST_ONLY_LAUNCH = true;
+/** Kept for waitlist admin; the public app is now a community forum. */
+export const WAITLIST_ONLY_LAUNCH = false;
 
 export const CONTACT_EMAIL = "contact@uchral.net";
