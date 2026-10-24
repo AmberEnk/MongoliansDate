@@ -351,7 +351,14 @@
     "yourReply": "Your reply",
     "reply": "Reply",
     "loginHint": "Sign in to post, comment, vote, or share a dating listing.",
-    "postCount": "{{count}} posts"
+    "postCount": "{{count}} posts",
+    "mine": "Mine",
+    "mineIntro": "Communities you started and posts you wrote.",
+    "myCommunities": "Your communities",
+    "myCommunitiesEmpty": "You have not started a community yet.",
+    "myPosts": "Your posts",
+    "myPostsEmpty": "You have not posted yet.",
+    "allCommunities": "All communities"
   },
   "help": {
     "link": "Help / Report",

@@ -15,6 +15,7 @@ import SubmitPage from "./pages/SubmitPage";
 import DatingPage from "./pages/DatingPage";
 import HelpPage from "./pages/HelpPage";
 import AdminModerationPage from "./pages/AdminModerationPage";
+import MinePage from "./pages/MinePage";
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/forgot" element={<ForgotPasswordPage />} />
         <Route path="/reset" element={<ResetPasswordPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/me" element={<MinePage />} />
         <Route path="/help" element={<HelpPage />} />
         <Route path="/legal/:slug" element={<LegalPage />} />
         <Route path="/admin/supporters" element={<AdminWaitlistPage />} />

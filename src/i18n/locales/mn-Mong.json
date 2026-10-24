@@ -275,7 +275,14 @@
     "yourReply": "ᠲᠠᠨ ᠤ ᠬᠠᠷᠢᠭᠤ",
     "reply": "ᠬᠠᠷᠢᠭᠤᠯᠬᠤ",
     "loginHint": "ᠪᠢᠴᠢᠬᠦ ᠳᠦ ᠨᠡᠪᠲᠡᠷᠡ",
-    "postCount": "{{count}} ᠫᠣᠰᠲ"
+    "postCount": "{{count}} ᠫᠣᠰᠲ",
+    "mine": "ᠮᠢᠨᠤ",
+    "mineIntro": "ᠲᠠᠨ ᠤ ᠪᠦᠯᠦᠭ ᠪᠣᠯᠤᠨ ᠫᠣᠰᠲ",
+    "myCommunities": "ᠲᠠᠨ ᠤ ᠪᠦᠯᠦᠭ",
+    "myCommunitiesEmpty": "ᠪᠦᠯᠦᠭ ᠦᠭᠡᠢ",
+    "myPosts": "ᠲᠠᠨ ᠤ ᠫᠣᠰᠲ",
+    "myPostsEmpty": "ᠫᠣᠰᠲ ᠦᠭᠡᠢ",
+    "allCommunities": "ᠪᠦᠬᠦ ᠪᠦᠯᠦᠭ"
   },
   "help": {
     "link": "ᠲᠤᠰᠠᠯᠠᠮᠵᠢ",

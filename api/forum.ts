@@ -781,6 +781,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await userFromToken(req);
         return res.status(200).json({ user: user ? publicUser(user) : null });
       }
+      if (action === "mine") {
+        const user = await userFromToken(req);
+        if (!user) return res.status(401).json({ error: "Sign in to continue." });
+        const { rows: communities } = await dbQuery(
+          `SELECT c.slug, c.title, c.description, c.kind,
+                  (SELECT COUNT(*) FROM forum_posts p WHERE p.community_id = c.id)::int AS post_count
+           FROM forum_communities c
+           WHERE c.created_by = $1
+           ORDER BY c.created_at DESC`,
+          [user.id]
+        );
+        const { rows: posts } = await dbQuery(
+          `${POST_LIST_SQL} WHERE p.author_id = $1 ORDER BY p.created_at DESC LIMIT 80`,
+          [user.id]
+        );
+        return res.status(200).json({
+          communities: communities.map((r: any) => ({
+            slug: r.slug,
+            title: r.title,
+            description: r.description,
+            kind: r.kind,
+            postCount: Number(r.post_count) || 0,
+          })),
+          posts: posts.map(mapPost),
+        });
+      }
       if (action === "communities" || action === "explore") {
         const { rows } = await dbQuery(
           `SELECT c.slug, c.title, c.description, c.kind,

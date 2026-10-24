@@ -1457,6 +1457,13 @@ textarea {
 
 .forum-user {
   font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-sky-deep);
+  text-decoration: none;
+}
+
+a.forum-user.is-active {
+  color: var(--color-love);
 }
 
 .forum-page {
@@ -1708,6 +1715,10 @@ textarea {
   padding: 1.15rem 1rem 1rem;
   border: 1px solid rgba(255, 255, 255, 0.9);
   box-shadow: var(--shadow-sm);
+}
+
+.community-card--mine {
+  box-shadow: 0 0 0 2px var(--color-gold-soft), var(--shadow-sm);
 }
 
 .community-card::before {

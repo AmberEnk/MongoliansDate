@@ -90,6 +90,10 @@ export async function fetchFeed(kind: "feed" | "popular" | "news"): Promise<Foru
   return data.posts;
 }
 
+export async function fetchMine(): Promise<{ communities: Community[]; posts: ForumPost[] }> {
+  return getJson("mine");
+}
+
 export async function fetchCommunities(): Promise<Community[]> {
   const data = await getJson<{ communities: Community[] }>("explore");
   return data.communities;

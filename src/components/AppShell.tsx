@@ -21,6 +21,7 @@ export default function AppShell() {
     { to: "/news", label: t("forum.news") },
     { to: "/explore", label: t("forum.explore") },
     { to: "/dating", label: t("forum.dating") },
+    ...(loggedIn ? [{ to: "/me", label: t("forum.mine"), end: false }] : []),
   ];
 
   return (
@@ -51,7 +52,9 @@ export default function AppShell() {
             </NavLink>
             {ready && loggedIn ? (
               <>
-                <span className="muted forum-user">{user?.displayName}</span>
+                <NavLink to="/me" className="forum-user">
+                  {user?.displayName}
+                </NavLink>
                 <button type="button" className="btn secondary lang-bar__logout" onClick={() => void onSignOut()}>
                   {t("common.signOut")}
                 </button>
