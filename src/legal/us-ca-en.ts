@@ -5,13 +5,13 @@
 
 import { CONTACT_EMAIL } from "../constants";
 
-const EFFECTIVE = "May 15, 2026";
+const EFFECTIVE = "October 24, 2026";
 const CONTACT = CONTACT_EMAIL;
 const SITE = "uchral.net";
 
 export const privacyPolicyBody = `
 <p><strong>Last updated:</strong> ${EFFECTIVE}</p>
-<p>This Privacy Policy describes how Uchral (&ldquo;Uchral,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) collects, uses, discloses, and protects personal information when you visit <a href="https://${SITE}">${SITE}</a>, join our waitlist, create an account, or use our dating and community features (collectively, the &ldquo;Service&rdquo;). We are operated from California, United States.</p>
+<p>This Privacy Policy describes how Uchral (&ldquo;Uchral,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) collects, uses, discloses, and protects personal information when you visit <a href="https://${SITE}">${SITE}</a>, join our email list, create an account, or use our community and dating features (collectively, the &ldquo;Service&rdquo;). We are operated from California, United States.</p>
 <p>By using the Service, you agree to this Privacy Policy. If you do not agree, please do not use the Service.</p>
 
 <h2>1. Information we collect</h2>
@@ -19,7 +19,7 @@ export const privacyPolicyBody = `
 <p><strong>Information you provide</strong> may include:</p>
 <ul>
 <li>Contact and account details (such as email address and password)</li>
-<li>Waitlist information (such as email, gender, age, country, and city)</li>
+<li>Early-supporter / email-list information (such as email, gender, age, country, and city)</li>
 <li>Profile information (such as photos, bio, preferences, and community-related details you choose to share)</li>
 <li>Messages and other content you send through the Service</li>
 <li>Support requests and correspondence with us</li>
@@ -37,7 +37,7 @@ export const privacyPolicyBody = `
 <p>We use personal information to:</p>
 <ul>
 <li>Provide, operate, maintain, and improve the Service</li>
-<li>Process waitlist sign-ups and communicate about launch or access</li>
+<li>Process email-list sign-ups and communicate about the Service</li>
 <li>Create and manage accounts, profiles, matching, and messaging</li>
 <li>Personalize your experience and show relevant content</li>
 <li>Monitor safety, enforce our Terms and Community Guidelines, and prevent fraud or abuse</li>
@@ -58,7 +58,7 @@ export const privacyPolicyBody = `
 <p><strong>We do not sell your personal information</strong> for money. We do not share personal information for cross-context behavioral advertising in a manner that qualifies as &ldquo;selling&rdquo; or &ldquo;sharing&rdquo; under the California Consumer Privacy Act (CCPA), as amended by the California Privacy Rights Act (CPRA), without offering required opt-out rights.</p>
 
 <h2>4. Retention</h2>
-<p>We retain personal information for as long as needed to provide the Service, fulfill the purposes described in this Policy, comply with legal obligations, resolve disputes, and enforce our agreements. Waitlist data is kept until you request deletion or we no longer need it for launch communications. Account data is generally retained while your account is active and for a reasonable period afterward unless law requires a longer period.</p>
+<p>We retain personal information for as long as needed to provide the Service, fulfill the purposes described in this Policy, comply with legal obligations, resolve disputes, and enforce our agreements. Email-list data is kept until you request deletion or we no longer need it for those communications. Account data is generally retained while your account is active and for a reasonable period afterward unless law requires a longer period.</p>
 
 <h2>5. Security</h2>
 <p>We use reasonable administrative, technical, and organizational measures designed to protect personal information. No method of transmission or storage is completely secure; we cannot guarantee absolute security.</p>
@@ -80,7 +80,7 @@ export const privacyPolicyBody = `
 <li><strong>Right to limit</strong> use and disclosure of sensitive personal information, where applicable</li>
 <li><strong>Right to non-discrimination</strong> for exercising these rights</li>
 </ul>
-<p>To submit a request, email <a href="mailto:${CONTACT}">${CONTACT}</a> with the subject line &ldquo;California Privacy Request&rdquo; and describe your request. We will verify your identity (for example, by confirming control of the email associated with your account or waitlist entry) before responding. You may designate an authorized agent; we may require proof of authorization and identity verification.</p>
+<p>To submit a request, email <a href="mailto:${CONTACT}">${CONTACT}</a> with the subject line &ldquo;California Privacy Request&rdquo; and describe your request. We will verify your identity (for example, by confirming control of the email associated with your account or email-list entry) before responding. You may designate an authorized agent; we may require proof of authorization and identity verification.</p>
 <p>We aim to respond within 45 days as required by law. Categories of personal information we collect, purposes, and disclosures align with Sections 1–3 above. In the preceding 12 months we have not sold personal information for monetary consideration.</p>
 <p><strong>Shine the Light:</strong> California Civil Code § 1798.83 permits California residents to request information about disclosure of personal information to third parties for their direct marketing purposes. We do not disclose personal information to third parties for their own direct marketing without your consent.</p>
 
@@ -102,22 +102,22 @@ Website: <a href="https://${SITE}">${SITE}</a></p>
 
 export const termsOfServiceBody = `
 <p><strong>Last updated:</strong> ${EFFECTIVE}</p>
-<p>These Terms of Service (&ldquo;Terms&rdquo;) are a binding agreement between you and Uchral (&ldquo;Uchral,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) governing your access to and use of <a href="https://${SITE}">${SITE}</a> and related products, including waitlist registration, accounts, profiles, matching, messaging, and community features (the &ldquo;Service&rdquo;). The Service is offered from California, United States.</p>
+<p>These Terms of Service (&ldquo;Terms&rdquo;) are a binding agreement between you and Uchral (&ldquo;Uchral,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) governing your access to and use of <a href="https://${SITE}">${SITE}</a> and related products, including email-list registration, accounts, posts, comments, and optional dating listings (the &ldquo;Service&rdquo;). The Service is offered from California, United States.</p>
 <p><strong>Please read these Terms carefully.</strong> By accessing or using the Service, you agree to these Terms and our <a href="/legal/privacy">Privacy Policy</a>. If you do not agree, do not use the Service.</p>
 
 <h2>1. Eligibility</h2>
 <p>You must be at least <strong>18 years old</strong> and able to form a binding contract to use the Service. You represent that you meet these requirements and that information you provide is accurate. We may refuse or terminate access if we reasonably believe you do not meet eligibility requirements.</p>
 
 <h2>2. The Service</h2>
-<p>Uchral is a platform for Mongolian and related communities to connect for dating and community purposes, including across borders. Features may change over time; we may add, modify, or remove features with or without notice.</p>
+<p>Uchral is a community forum for Mongolian and related communities, including people across borders. Dating listings are optional. Features may change over time; we may add, modify, or remove features with or without notice.</p>
 <p><strong>Not legal or immigration advice.</strong> The Service may allow discussion of visas, sponsorship, or relocation. Uchral does not provide legal, immigration, tax, or financial advice. Information from other users or from us is general only. Consult a licensed attorney or qualified professional for your situation. You are solely responsible for compliance with immigration and other laws.</p>
 <p><strong>No guarantee of outcomes.</strong> We do not guarantee matches, relationships, employment, visa outcomes, or safety of in-person meetings.</p>
 
 <h2>3. Accounts and security</h2>
 <p>You are responsible for maintaining the confidentiality of your credentials and for activity under your account. Notify us promptly at <a href="mailto:${CONTACT}">${CONTACT}</a> if you suspect unauthorized access. We may suspend or terminate accounts that violate these Terms or pose risk to the community.</p>
 
-<h2>4. Waitlist</h2>
-<p>If you join a waitlist, you agree we may contact you about the Service by email. Waitlist placement does not guarantee access. We may use waitlist information as described in our Privacy Policy.</p>
+<h2>4. Email list</h2>
+<p>If you join our email list (sometimes called early supporters), you agree we may contact you about the Service by email. Being on the list does not create an account. We may use that information as described in our Privacy Policy.</p>
 
 <h2>5. User conduct</h2>
 <p>You agree not to:</p>

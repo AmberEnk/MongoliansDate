@@ -54,7 +54,7 @@ export default function AdminModerationPage() {
   return (
     <div className="forum-page">
       <h1>Moderation</h1>
-      <p className="subtle-hint">Use the same WAITLIST_EXPORT_TOKEN. Reports stay here so you can close accounts. Do not share this page.</p>
+      <p className="subtle-hint">Use the same admin token (WAITLIST_EXPORT_TOKEN in Vercel). Reports stay here so you can close accounts. Do not share this page.</p>
       <form className="card composer" onSubmit={(e) => void load(e)}>
         <label>
           Token

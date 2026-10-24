@@ -87,14 +87,14 @@ export default function AdminWaitlistPage() {
       }
       if (!r.ok) {
         setRows([]);
-        setError(await adminFetchErrorMessage(r, "Could not load waitlist"));
+        setError(await adminFetchErrorMessage(r, "Could not load early supporters"));
         return;
       }
       const data = (await r.json()) as { rows?: Row[] };
       setRows(Array.isArray(data.rows) ? data.rows : []);
     } catch {
       setRows([]);
-      setError("Could not load waitlist.");
+      setError("Could not load early supporters.");
     } finally {
       setLoading(false);
     }
@@ -139,7 +139,7 @@ export default function AdminWaitlistPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "waitlist-export.csv";
+      a.download = "early-supporters.csv";
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -151,10 +151,10 @@ export default function AdminWaitlistPage() {
 
   return (
     <section className="admin-waitlist">
-      <h1>Waitlist Admin</h1>
-      <p className="muted">View signups and gender counts.</p>
+      <h1>Early supporters</h1>
+      <p className="muted">People who left their email before the community opened.</p>
       <p className="muted">
-        Paste the Bearer secret set as WAITLIST_EXPORT_TOKEN on the server. Do not link this page in public
+        Paste the admin secret set as WAITLIST_EXPORT_TOKEN on the server. Do not link this page in public
         posts.
       </p>
 
@@ -166,7 +166,7 @@ export default function AdminWaitlistPage() {
           placeholder="WAITLIST_EXPORT_TOKEN"
         />
         <button type="submit" className="btn" disabled={loading}>
-          {loading ? "Loading..." : "Load waitlist"}
+          {loading ? "Loading..." : "Load list"}
         </button>
         {import.meta.env.DEV ? (
           <button type="button" className="btn secondary" disabled={loading} onClick={() => void loadRowsDebug()}>

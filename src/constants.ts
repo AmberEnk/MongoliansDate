@@ -14,7 +14,7 @@ export const LA_METRO_DEFAULT = {
   label: "Los Angeles metro",
 } as const;
 
-/** Kept for waitlist admin; the public app is now a community forum. */
+/** Kept for the early-supporters admin list; the public app is a community forum. */
 export const WAITLIST_ONLY_LAUNCH = false;
 
 export const CONTACT_EMAIL = "contact@uchral.net";

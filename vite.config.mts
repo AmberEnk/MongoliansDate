@@ -96,7 +96,7 @@ export default defineConfig(({ mode }) => {
       forumDevApi(),
       VitePWA({
         registerType: "autoUpdate",
-        includeAssets: ["apple-touch-icon.png", "favicon-32.png", "robots.txt"],
+        includeAssets: ["apple-touch-icon.png", "favicon-32.png", "favicon.ico", "robots.txt"],
         manifest: {
           name: "UCHRAL NETWORKING",
           short_name: "Uchral",

@@ -36,6 +36,7 @@ export default function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/help" element={<HelpPage />} />
         <Route path="/legal/:slug" element={<LegalPage />} />
+        <Route path="/admin/supporters" element={<AdminWaitlistPage />} />
         <Route path="/admin/waitlist" element={<AdminWaitlistPage />} />
         <Route path="/admin/moderation" element={<AdminModerationPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -187,7 +187,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     res.setHeader("Content-Type", "text/csv; charset=utf-8");
-    res.setHeader("Content-Disposition", 'attachment; filename="waitlist-export.csv"');
+    res.setHeader("Content-Disposition", 'attachment; filename="early-supporters.csv"');
     return res.status(200).send(lines.join("\n"));
   } catch (error) {
     console.error("waitlist export failed", error);
