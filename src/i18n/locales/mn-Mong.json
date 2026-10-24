@@ -308,10 +308,11 @@
   "pwa": {
     "installTitle": "Uchral ᠢ ᠤᠲᠠᠰᠤᠨ ᠳᠤᠭᠠᠨ ᠨᠡᠮᠡᠬᠦ",
     "installBody": "ᠦᠨᠳᠦᠰᠦᠨ ᠳᠡᠯᠭᠡᠴᠡ ᠳᠦ ᠰᠤᠭᠤᠯᠭᠠᠨ᠎ᠠ ᠃ App Store ᠬᠡᠷᠡᠭᠰᠡᠬᠦ ᠦᠭᠡᠢ — ᠡᠩᠭᠢᠨ ᠠᠫᠫ ᠮᠡᠲᠦ ᠨᠡᠭᠡᠭᠳᠡᠨ᠎ᠡ ᠃",
-    "install": "ᠰᠤᠭᠤᠯᠬᠤ",
+    "alwaysBody": "App Store ᠳᠤ ᠦᠭᠡᠢ ᠃ ᠦᠨᠳᠦᠰᠦᠨ ᠳᠡᠯᠭᠡᠴᠡ ᠳᠦ ᠨᠡᠮᠡᠪᠡᠯ ᠠᠫᠫ ᠮᠡᠲᠦ ᠨᠡᠭᠡᠭᠳᠡᠨ᠎ᠡ ᠄ ᠴᠧᠰ ᠂ Add to Home screen ᠃",
+    "install": "ᠦᠨᠳᠦᠰᠦᠨ ᠳᠡᠯᠭᠡᠴᠡ ᠳᠦ ᠨᠡᠮᠡᠬᠦ",
     "dismiss": "ᠣᠳᠣ ᠪᠢᠰᠢ",
     "iosTitle": "ᠦᠨᠳᠦᠰᠦᠨ ᠳᠡᠯᠭᠡᠴᠡ ᠳᠦ ᠨᠡᠮᠡᠬᠦ",
-    "iosBody": "iPhone ᠳᠡᠭᠡᠷ᠎ᠡ: Share ᠲᠣᠪᠴᠢ ᠶᠢ ᠳᠠᠷᠠᠭᠠᠳ Add to Home Screen ᠢ ᠰᠣᠩᠭᠣᠨ᠎ᠠ ᠃"
+    "iosBody": "App Store ᠳᠤ ᠦᠭᠡᠢ ᠃ iPhone ᠳᠡᠭᠡᠷ᠎ᠡ: Share ᠂ Add to Home Screen ᠃"
   },
   "adminWaitlist": {
     "title": "ᠡᠬᠢᠯᠡᠯ ᠦᠨ ᠳᠡᠮᠵᠢᠭᠴᠢᠳ"

@@ -384,10 +384,11 @@
   "pwa": {
     "installTitle": "Add Uchral to your phone",
     "installBody": "Install it on your home screen. No App Store needed — it opens like a regular app.",
-    "install": "Install",
+    "alwaysBody": "Not in the App Store. Add Uchral to your home screen so it opens like an app: browser menu → Add to Home screen.",
+    "install": "Add to home screen",
     "dismiss": "Not now",
     "iosTitle": "Add Uchral to your home screen",
-    "iosBody": "On iPhone: tap Share, then Add to Home Screen."
+    "iosBody": "Not in the App Store. On iPhone: tap Share, then Add to Home Screen."
   },
   "adminWaitlist": {
     "title": "Early supporters"
