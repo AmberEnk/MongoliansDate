@@ -1,4 +1,4 @@
-import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
+import { createHash, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 function connectionCandidates(): string[] {
@@ -525,7 +525,30 @@ async function buildSchema() {
       contact TEXT NOT NULL DEFAULT '',
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    CREATE TABLE IF NOT EXISTS forum_password_resets (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL REFERENCES forum_users(id) ON DELETE CASCADE,
+      token_hash TEXT NOT NULL UNIQUE,
+      expires_at TIMESTAMPTZ NOT NULL,
+      used_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS forum_reports (
+      id BIGSERIAL PRIMARY KEY,
+      reporter_id BIGINT REFERENCES forum_users(id) ON DELETE SET NULL,
+      post_id BIGINT REFERENCES forum_posts(id) ON DELETE SET NULL,
+      target_user_id BIGINT REFERENCES forum_users(id) ON DELETE SET NULL,
+      reason TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS forum_rate (
+      id BIGSERIAL PRIMARY KEY,
+      bucket TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
   `);
+  await dbQuery(`CREATE INDEX IF NOT EXISTS forum_rate_bucket_time ON forum_rate (bucket, created_at)`);
+  await dbQuery(`ALTER TABLE forum_users ADD COLUMN IF NOT EXISTS banned_at TIMESTAMPTZ`);
   for (const c of SEED_COMMUNITIES) {
     await dbQuery(
       `INSERT INTO forum_communities (slug, title, description, kind)
@@ -600,6 +623,42 @@ async function buildSchema() {
   schemaReady = true;
 }
 
+function hashResetToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+function getModToken(): string {
+  let s = String(process.env.WAITLIST_EXPORT_TOKEN ?? "").trim();
+  if (/^Bearer\s+/i.test(s)) s = s.replace(/^Bearer\s+/i, "").trim();
+  return s;
+}
+
+function isModerator(req: VercelRequest): boolean {
+  const want = getModToken();
+  const got = headerToken(req);
+  return want.length > 0 && got === want;
+}
+
+async function sendResetEmail(to: string, link: string) {
+  const text = `Reset your Uchral password:\n\n${link}\n\nThis link expires in one hour. If you did not ask for this, ignore the email.`;
+  const key = String(process.env.RESEND_API_KEY ?? "").trim();
+  if (!key) {
+    if (process.env.VERCEL === "1") throw new Error("RESEND_API_KEY is not set");
+    console.log("[password reset]", to, link);
+    return;
+  }
+  const from = String(process.env.RESET_FROM_EMAIL ?? "Uchral <contact@uchral.net>").trim();
+  const r = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ from, to, subject: "Reset your Uchral password", text }),
+  });
+  if (!r.ok) {
+    console.error("resend failed", r.status, await r.text());
+    throw new Error("email send failed");
+  }
+}
+
 function hashPassword(password: string): string {
   const salt = randomBytes(16);
   const hash = scryptSync(password, salt, 32);
@@ -611,6 +670,24 @@ function verifyPassword(password: string, stored: string): boolean {
   const hash = scryptSync(password, Buffer.from(saltHex, "hex"), 32);
   const expected = Buffer.from(hashHex, "hex");
   return hash.length === expected.length && timingSafeEqual(hash, expected);
+}
+
+function clientIp(req: VercelRequest): string {
+  const xf = String(req.headers["x-forwarded-for"] ?? "").split(",")[0].trim();
+  const real = String(req.headers["x-real-ip"] ?? "").trim();
+  return (xf || real || "unknown").slice(0, 80);
+}
+
+async function allowRate(bucket: string, max: number, hours: number): Promise<boolean> {
+  await dbQuery(`DELETE FROM forum_rate WHERE created_at < NOW() - INTERVAL '48 hours'`);
+  const { rows } = await dbQuery(
+    `SELECT COUNT(*)::int AS n FROM forum_rate
+     WHERE bucket = $1 AND created_at > NOW() - ($2::int * INTERVAL '1 hour')`,
+    [bucket, hours]
+  );
+  if ((rows[0]?.n ?? 0) >= max) return false;
+  await dbQuery(`INSERT INTO forum_rate (bucket) VALUES ($1)`, [bucket]);
+  return true;
 }
 
 function headerToken(req: VercelRequest): string {
@@ -643,12 +720,18 @@ async function userFromToken(req: VercelRequest) {
   const token = headerToken(req);
   if (!token) return null;
   const { rows } = await dbQuery(
-    `SELECT u.id, u.email, u.display_name
+    `SELECT u.id, u.email, u.display_name, u.banned_at
      FROM forum_sessions s JOIN forum_users u ON u.id = s.user_id
-     WHERE s.token = $1`,
+     WHERE s.token = $1 AND s.created_at > NOW() - INTERVAL '30 days'`,
     [token]
   );
-  return rows[0] ?? null;
+  const user = rows[0];
+  if (!user) return null;
+  if (user.banned_at) {
+    await dbQuery(`DELETE FROM forum_sessions WHERE token = $1`, [token]);
+    return null;
+  }
+  return user;
 }
 
 async function requireUser(req: VercelRequest, res: VercelResponse) {
@@ -668,7 +751,7 @@ const POST_LIST_SQL = `
     (SELECT COUNT(*) FROM forum_comments cm WHERE cm.post_id = p.id)::int AS comment_count
   FROM forum_posts p
   JOIN forum_communities c ON c.id = p.community_id
-  JOIN forum_users u ON u.id = p.author_id
+  JOIN forum_users u ON u.id = p.author_id AND u.banned_at IS NULL
 `;
 
 function mapPost(row: any) {
@@ -745,7 +828,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { rows: comments } = await dbQuery(
           `SELECT cm.id, cm.body, cm.created_at, u.display_name AS author_name
            FROM forum_comments cm JOIN forum_users u ON u.id = cm.author_id
-           WHERE cm.post_id = $1 ORDER BY cm.created_at ASC`,
+           WHERE cm.post_id = $1 AND u.banned_at IS NULL ORDER BY cm.created_at ASC`,
           [id]
         );
         return res.status(200).json({
@@ -763,6 +846,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { rows } = await dbQuery(
           `SELECT d.id, d.city, d.age, d.intro, d.contact, d.created_at, u.display_name
            FROM dating_listings d JOIN forum_users u ON u.id = d.user_id
+           WHERE u.banned_at IS NULL
            ORDER BY d.created_at DESC LIMIT 80`
         );
         return res.status(200).json({
@@ -775,6 +859,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             contact: signedIn ? r.contact : "",
             contactHidden: !signedIn,
             createdAt: r.created_at,
+          })),
+        });
+      }
+      if (action === "reports") {
+        if (!isModerator(req)) return res.status(401).json({ error: "Unauthorized." });
+        const { rows } = await dbQuery(
+          `SELECT r.id, r.reason, r.created_at, r.post_id,
+                  ru.display_name AS reporter_name, ru.email AS reporter_email,
+                  tu.id AS target_id, tu.display_name AS target_name, tu.email AS target_email, tu.banned_at,
+                  p.title AS post_title
+           FROM forum_reports r
+           LEFT JOIN forum_users ru ON ru.id = r.reporter_id
+           LEFT JOIN forum_users tu ON tu.id = r.target_user_id
+           LEFT JOIN forum_posts p ON p.id = r.post_id
+           ORDER BY r.created_at DESC
+           LIMIT 100`
+        );
+        return res.status(200).json({
+          reports: rows.map((r: any) => ({
+            id: String(r.id),
+            reason: r.reason,
+            createdAt: r.created_at,
+            postId: r.post_id ? String(r.post_id) : null,
+            postTitle: r.post_title || "",
+            reporterName: r.reporter_name || "",
+            reporterEmail: r.reporter_email || "",
+            targetId: r.target_id ? String(r.target_id) : null,
+            targetName: r.target_name || "",
+            targetEmail: r.target_email || "",
+            banned: !!r.banned_at,
           })),
         });
       }
@@ -801,6 +915,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       const age = ageFromBirthdate(birthdate);
       if (age == null || age < 18) return res.status(400).json({ error: "You must be 18 or older." });
+      if (!(await allowRate(`reg:${clientIp(req)}`, 8, 1))) {
+        return res.status(429).json({ error: "Too many tries. Wait a bit." });
+      }
+      const { rows: existing } = await dbQuery(`SELECT banned_at FROM forum_users WHERE email = $1`, [email]);
+      if (existing[0]?.banned_at) return res.status(403).json({ error: "This account is closed." });
       try {
         const { rows } = await dbQuery(
           `INSERT INTO forum_users (email, password_hash, display_name, birthdate)
@@ -822,13 +941,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const email = str(body.email, 120).toLowerCase();
       const password = String(body.password ?? "");
       const { rows } = await dbQuery(
-        `SELECT id, email, display_name, password_hash FROM forum_users WHERE email = $1`,
+        `SELECT id, email, display_name, password_hash, banned_at FROM forum_users WHERE email = $1`,
         [email]
       );
       const user = rows[0];
+      if (!(await allowRate(`login:${clientIp(req)}`, 20, 1)) || !(await allowRate(`login-email:${email}`, 10, 1))) {
+        return res.status(429).json({ error: "Too many tries. Wait a bit." });
+      }
       if (!user || !verifyPassword(password, user.password_hash)) {
         return res.status(401).json({ error: "Email or password is incorrect." });
       }
+      if (user.banned_at) return res.status(403).json({ error: "This account is closed." });
+      await dbQuery(`DELETE FROM forum_sessions WHERE user_id = $1 AND created_at < NOW() - INTERVAL '30 days'`, [user.id]);
       const token = randomBytes(32).toString("hex");
       await dbQuery(`INSERT INTO forum_sessions (token, user_id) VALUES ($1, $2)`, [token, user.id]);
       return res.status(200).json({ token, user: publicUser(user) });
@@ -840,10 +964,106 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ ok: true });
     }
 
+    if (postAction === "requestPasswordReset") {
+      const email = str(body.email, 120).toLowerCase();
+      const generic = { ok: true };
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(200).json(generic);
+      const { rows } = await dbQuery(`SELECT id, banned_at FROM forum_users WHERE email = $1`, [email]);
+      const user = rows[0];
+      if (!user || user.banned_at) return res.status(200).json(generic);
+      const { rows: recent } = await dbQuery(
+        `SELECT COUNT(*)::int AS n FROM forum_password_resets
+         WHERE user_id = $1 AND created_at > NOW() - INTERVAL '1 hour'`,
+        [user.id]
+      );
+      if ((recent[0]?.n ?? 0) >= 3) return res.status(200).json(generic);
+      const token = randomBytes(32).toString("hex");
+      await dbQuery(
+        `INSERT INTO forum_password_resets (user_id, token_hash, expires_at)
+         VALUES ($1, $2, NOW() + INTERVAL '1 hour')`,
+        [user.id, hashResetToken(token)]
+      );
+      const origin = (process.env.APP_ORIGIN || "https://uchral.net").replace(/\/$/, "");
+      try {
+        await sendResetEmail(email, `${origin}/reset?token=${token}`);
+      } catch (err) {
+        console.error("reset email failed", err);
+        return res.status(500).json({ error: "Could not send reset email." });
+      }
+      return res.status(200).json(generic);
+    }
+
+    if (postAction === "resetPassword") {
+      const token = str(body.token, 80);
+      const password = String(body.password ?? "");
+      if (token.length < 32) return res.status(400).json({ error: "This reset link is invalid or expired." });
+      if (password.length < 10) return res.status(400).json({ error: "Password must be at least 10 characters." });
+      const { rows } = await dbQuery(
+        `SELECT id, user_id FROM forum_password_resets
+         WHERE token_hash = $1 AND used_at IS NULL AND expires_at > NOW()`,
+        [hashResetToken(token)]
+      );
+      const row = rows[0];
+      if (!row) return res.status(400).json({ error: "This reset link is invalid or expired." });
+      await dbQuery(`UPDATE forum_users SET password_hash = $1 WHERE id = $2`, [hashPassword(password), row.user_id]);
+      await dbQuery(`UPDATE forum_password_resets SET used_at = NOW() WHERE id = $1`, [row.id]);
+      await dbQuery(`DELETE FROM forum_sessions WHERE user_id = $1`, [row.user_id]);
+      await dbQuery(`DELETE FROM forum_password_resets WHERE user_id = $1 AND id <> $2`, [row.user_id, row.id]);
+      return res.status(200).json({ ok: true });
+    }
+
+    if (postAction === "report") {
+      if (!(await allowRate(`report:${clientIp(req)}`, 8, 1))) {
+        return res.status(429).json({ error: "Too many tries. Wait a bit." });
+      }
+      const reason = str(body.reason, 800);
+      const postId = str(body.postId, 20);
+      if (reason.length < 8) return res.status(400).json({ error: "Please describe what happened." });
+      const reporter = await userFromToken(req);
+      let targetId: string | null = null;
+      if (postId) {
+        const { rows: post } = await dbQuery(`SELECT author_id FROM forum_posts WHERE id = $1`, [postId]);
+        if (!post[0]) return res.status(404).json({ error: "Post not found." });
+        targetId = String(post[0].author_id);
+      }
+      await dbQuery(
+        `INSERT INTO forum_reports (reporter_id, post_id, target_user_id, reason)
+         VALUES ($1, $2, $3, $4)`,
+        [reporter?.id ?? null, postId || null, targetId, reason]
+      );
+      const key = String(process.env.RESEND_API_KEY ?? "").trim();
+      if (key) {
+        const from = String(process.env.RESET_FROM_EMAIL ?? "Uchral <contact@uchral.net>").trim();
+        void fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from,
+            to: "contact@uchral.net",
+            subject: "Uchral report",
+            text: `Reason: ${reason}\nPost: ${postId || "(none)"}\nTarget user: ${targetId || "(none)"}`,
+          }),
+        }).catch((err) => console.error("report email failed", err));
+      }
+      return res.status(200).json({ ok: true });
+    }
+
+    if (postAction === "banUser") {
+      if (!isModerator(req)) return res.status(401).json({ error: "Unauthorized." });
+      const userId = str(body.userId, 20);
+      if (!userId) return res.status(400).json({ error: "Missing user." });
+      await dbQuery(`UPDATE forum_users SET banned_at = NOW() WHERE id = $1 AND banned_at IS NULL`, [userId]);
+      await dbQuery(`DELETE FROM forum_sessions WHERE user_id = $1`, [userId]);
+      return res.status(200).json({ ok: true });
+    }
+
     const user = await requireUser(req, res);
     if (!user) return;
 
     if (postAction === "createCommunity") {
+      if (!(await allowRate(`community:${user.id}`, 3, 24))) {
+        return res.status(429).json({ error: "Too many tries. Wait a bit." });
+      }
       const title = str(body.title, 60);
       const description = str(body.description, 280);
       let slug = str(body.slug, 40).toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
@@ -864,6 +1084,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (postAction === "createPost") {
+      if (!(await allowRate(`post:${user.id}`, 15, 1))) {
+        return res.status(429).json({ error: "Too many tries. Wait a bit." });
+      }
       const communitySlug = str(body.communitySlug, 40);
       const title = str(body.title, 200);
       const postBody = str(body.body, 8000);
@@ -878,6 +1101,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (postAction === "createComment") {
+      if (!(await allowRate(`comment:${user.id}`, 40, 1))) {
+        return res.status(429).json({ error: "Too many tries. Wait a bit." });
+      }
       const postId = str(body.postId, 20);
       const commentBody = str(body.body, 2000);
       if (commentBody.length < 1) return res.status(400).json({ error: "Write a comment." });
@@ -905,6 +1131,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (postAction === "createDating") {
+      if (!(await allowRate(`dating:${user.id}`, 10, 1))) {
+        return res.status(429).json({ error: "Too many tries. Wait a bit." });
+      }
       const city = str(body.city, 80);
       const intro = str(body.intro, 600);
       const contact = str(body.contact, 160);

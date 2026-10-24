@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import AppShell from "./components/AppShell";
 import LoginPage from "./pages/LoginPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import RegisterPage from "./pages/RegisterPage";
 import LegalPage from "./pages/LegalPage";
 import AdminWaitlistPage from "./pages/AdminWaitlistPage";
@@ -11,6 +13,8 @@ import PostPage from "./pages/PostPage";
 import NewCommunityPage from "./pages/NewCommunityPage";
 import SubmitPage from "./pages/SubmitPage";
 import DatingPage from "./pages/DatingPage";
+import HelpPage from "./pages/HelpPage";
+import AdminModerationPage from "./pages/AdminModerationPage";
 
 export default function App() {
   return (
@@ -27,9 +31,13 @@ export default function App() {
         <Route path="/submit" element={<SubmitPage />} />
         <Route path="/submit/:communitySlug" element={<SubmitPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot" element={<ForgotPasswordPage />} />
+        <Route path="/reset" element={<ResetPasswordPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/help" element={<HelpPage />} />
         <Route path="/legal/:slug" element={<LegalPage />} />
         <Route path="/admin/waitlist" element={<AdminWaitlistPage />} />
+        <Route path="/admin/moderation" element={<AdminModerationPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

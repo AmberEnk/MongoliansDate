@@ -1,8 +1,8 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import BrandLogo from "./BrandLogo";
-import * as forum from "../forum/api";
+import VoteButtons from "./VoteButtons";
 import type { ForumPost } from "../forum/types";
 
 function timeAgo(iso: string, locale: string): string {
@@ -27,20 +27,6 @@ export default function PostList({
 }) {
   const { t, i18n } = useTranslation();
   const { loggedIn } = useAuth();
-  const nav = useNavigate();
-
-  async function onVote(id: string, value: 1 | -1) {
-    if (!loggedIn) {
-      nav("/login");
-      return;
-    }
-    try {
-      await forum.vote(id, value);
-      onVoted?.();
-    } catch {
-      /* ignore */
-    }
-  }
 
   if (!posts.length) {
     return (
@@ -65,15 +51,7 @@ export default function PostList({
     <ul className="post-list">
       {posts.map((p) => (
         <li key={p.id} className="post-card">
-          <div className="vote-col">
-            <button type="button" className="vote-btn" aria-label={t("forum.upvote")} onClick={() => void onVote(p.id, 1)}>
-              ▲
-            </button>
-            <span className="vote-score">{p.score}</span>
-            <button type="button" className="vote-btn" aria-label={t("forum.downvote")} onClick={() => void onVote(p.id, -1)}>
-              ▼
-            </button>
-          </div>
+          <VoteButtons postId={p.id} score={p.score} onVoted={onVoted} />
           <div className="post-card__body">
             <p className="post-card__meta">
               <Link to={`/c/${p.communitySlug}`}>c/{p.communitySlug}</Link>
@@ -86,9 +64,11 @@ export default function PostList({
               {p.title}
             </Link>
             {p.body ? <p className="post-card__excerpt">{p.body}</p> : null}
-            <Link to={`/p/${p.id}`} className="post-card__comments">
-              {t("forum.commentsCount", { count: p.commentCount })}
-            </Link>
+            <p className="post-card__comments">
+              <Link to={`/p/${p.id}`}>{t("forum.commentsCount", { count: p.commentCount })}</Link>
+              {" · "}
+              <Link to={`/help?post=${p.id}`}>{t("help.report")}</Link>
+            </p>
           </div>
         </li>
       ))}

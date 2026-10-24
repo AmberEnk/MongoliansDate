@@ -69,6 +69,14 @@ export async function login(email: string, password: string): Promise<{ token: s
   return postJson({ action: "login", email, password });
 }
 
+export async function requestPasswordReset(email: string): Promise<void> {
+  await postJson({ action: "requestPasswordReset", email });
+}
+
+export async function resetPassword(token: string, password: string): Promise<void> {
+  await postJson({ action: "resetPassword", token, password });
+}
+
 export async function logout(): Promise<void> {
   try {
     await postJson({ action: "logout" });
@@ -119,3 +127,36 @@ export async function vote(postId: string, value: 1 | -1) {
 export async function saveDating(input: { city: string; age: number; intro: string; contact: string }) {
   return postJson({ action: "createDating", ...input });
 }
+
+export async function report(input: { reason: string; postId?: string }) {
+  return postJson({ action: "report", ...input });
+}
+
+export async function fetchReports(token: string) {
+  const r = await fetch("/api/forum?action=reports", { headers: { Authorization: `Bearer ${token}` } });
+  if (!r.ok) throw new Error(await readError(r, "Could not load reports."));
+  return r.json() as Promise<{ reports: ModerationReport[] }>;
+}
+
+export async function banUser(token: string, userId: string) {
+  const r = await fetch("/api/forum", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ action: "banUser", userId }),
+  });
+  if (!r.ok) throw new Error(await readError(r, "Could not close the account."));
+}
+
+export type ModerationReport = {
+  id: string;
+  reason: string;
+  createdAt: string;
+  postId: string | null;
+  postTitle: string;
+  reporterName: string;
+  reporterEmail: string;
+  targetId: string | null;
+  targetName: string;
+  targetEmail: string;
+  banned: boolean;
+};

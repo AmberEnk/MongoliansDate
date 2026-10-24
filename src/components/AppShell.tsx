@@ -74,6 +74,7 @@ export default function AppShell() {
         <BrandLogo className="app-footer__logo" size={72} decorative />
         <p>{t("brand.footer")}</p>
         <nav className="app-footer__legal" aria-label={t("brand.footer")}>
+          <Link to="/help">{t("help.link")}</Link>
           <Link to="/legal/guidelines">{t("home.communityGuidelines")}</Link>
           <Link to="/legal/privacy">{t("home.privacy")}</Link>
           <Link to="/legal/terms">{t("home.terms")}</Link>

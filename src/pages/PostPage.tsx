@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
+import VoteButtons from "../components/VoteButtons";
 import * as forum from "../forum/api";
 import type { ForumComment, ForumPost } from "../forum/types";
 
@@ -54,12 +55,18 @@ export default function PostPage() {
           <p className="chat-back">
             <Link to={`/c/${post.communitySlug}`}>c/{post.communitySlug}</Link>
           </p>
-          <article className="card">
-            <p className="post-card__meta">
-              {post.authorName} · {new Date(post.createdAt).toLocaleString()}
-            </p>
-            <h1>{post.title}</h1>
-            {post.body ? <p className="post-detail-body">{post.body}</p> : null}
+          <article className="card post-detail">
+            <VoteButtons postId={post.id} score={post.score} onVoted={() => void load()} />
+            <div>
+              <p className="post-card__meta">
+                {post.authorName} · {new Date(post.createdAt).toLocaleString()}
+              </p>
+              <h1>{post.title}</h1>
+              {post.body ? <p className="post-detail-body">{post.body}</p> : null}
+              <p>
+                <Link to={`/help?post=${post.id}`}>{t("help.report")}</Link>
+              </p>
+            </div>
           </article>
         </>
       ) : null}

@@ -58,7 +58,16 @@
   "login": {
     "title": "ᠨᠡᠪᠲᠡᠷᠡᠬᠦ",
     "createAccount": "ᠪᠦᠷᠢᠳᠬᠡᠯ ᠪᠠᠢᠭᠤᠯᠬᠤ",
-    "forgotPassword": "ᠨᠢᠭᠤᠴᠠ ᠦᠭᠡ ᠮᠠᠷᠲᠠᠪᠠ ᠤᠤ"
+    "forgotPassword": "ᠨᠢᠭᠤᠴᠠ ᠦᠭᠡ ᠮᠠᠷᠲᠠᠪᠠ ᠤᠤ",
+    "forgotTitle": "ᠨᠢᠭᠤᠴᠠ ᠦᠭᠡ ᠰᠡᠷᠭᠡᠭᠡᠬᠦ",
+    "forgotIntro": "ᠢ ᠮᠧᠶᠢᠯ ᠪᠡᠨ ᠣᠷᠤᠭᠤᠯ",
+    "forgotSent": "ᠢᠯᠡᠭᠡᠪᠡ",
+    "sendReset": "ᠢᠯᠡᠭᠡᠬᠦ",
+    "resetTitle": "ᠰᠢᠨ᠎ᠡ ᠨᠢᠭᠤᠴᠠ ᠦᠭᠡ",
+    "resetInvalid": "ᠬᠣᠯᠪᠣᠭ᠎ᠠ ᠪᠤᠷᠤᠭᠤ",
+    "confirmPassword": "ᠳᠠᠪᠲᠠᠬᠤ",
+    "passwordMismatch": "ᠲᠠᠠᠷᠠᠬᠤ ᠦᠭᠡᠢ",
+    "savePassword": "ᠬᠠᠳᠠᠭᠠᠯᠠᠬᠤ"
   },
   "register": {
     "title": "ᠪᠦᠷᠢᠳᠬᠡᠯ ᠪᠠᠢᠭᠤᠯᠬᠤ",
@@ -255,7 +264,9 @@
     "loadFail": "ᠠᠴᠢᠶᠠᠯᠠᠵᠤ ᠦᠯᠦ ᠴᠢᠳᠠᠪᠠ",
     "saveFail": "ᠬᠠᠳᠠᠭᠠᠯᠠᠵᠤ ᠦᠯᠦ ᠴᠢᠳᠠᠪᠠ",
     "upvote": "ᠳᠡᠮᠵᠢᠬᠦ",
-    "downvote": "ᠪᠤᠤᠷᠤᠭᠤᠯᠬᠤ",
+    "downvote": "ᠳᠤᠷᠭᠦᠢ",
+    "like": "ᠳᠡᠮᠵᠢᠬᠦ",
+    "dislike": "ᠳᠤᠷᠭᠦᠢ",
     "commentsCount": "{{count}} ᠰᠡᠲᠭᠡᠭᠳᠡᠯ",
     "guestRead": "ᠤᠩᠰᠢᠵᠤ ᠪᠣᠯᠤᠨ᠎ᠠ ᠃ ᠪᠢᠴᠢᠬᠦ ᠳᠦ ᠪᠦᠷᠢᠳᠬᠡᠯ ᠃",
     "guestReply": "ᠬᠠᠷᠢᠭᠤ ᠥᠭᠬᠦ ᠳᠦ ᠨᠡᠪᠲᠡᠷᠡ ᠃",
@@ -265,6 +276,17 @@
     "reply": "ᠬᠠᠷᠢᠭᠤᠯᠬᠤ",
     "loginHint": "ᠪᠢᠴᠢᠬᠦ ᠳᠦ ᠨᠡᠪᠲᠡᠷᠡ",
     "postCount": "{{count}} ᠫᠣᠰᠲ"
+  },
+  "help": {
+    "link": "ᠲᠤᠰᠠᠯᠠᠮᠵᠢ",
+    "report": "ᠮᠡᠳᠡᠭᠦᠯᠡᠬᠦ",
+    "title": "ᠲᠤᠰᠠᠯᠠᠮᠵᠢ",
+    "intro": "ᠳᠠᠷᠠᠮᠲᠠᠯᠠᠬᠤ ᠪᠤᠶᠤ ᠳᠤᠷᠢᠮ ᠵᠥᠷᠴᠢᠪᠡᠯ ᠮᠡᠳᠡᠭᠦᠯᠡ",
+    "aboutPost": "post {{id}}",
+    "reason": "ᠶᠠᠭᠤ ᠪᠣᠯᠪᠠ",
+    "submit": "ᠢᠯᠡᠭᠡᠬᠦ",
+    "sent": "ᠪᠠᠶᠠᠷᠯᠠᠯ᠎ᠠ",
+    "orEmail": "email"
   },
   "dating": {
     "boardTitle": "ᠲᠠᠨᠢᠯᠴᠠᠬᠤ",

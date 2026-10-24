@@ -133,7 +133,16 @@
   "login": {
     "title": "Sign in",
     "createAccount": "Create account",
-    "forgotPassword": "Forgot password? Email us"
+    "forgotPassword": "Forgot password?",
+    "forgotTitle": "Reset password",
+    "forgotIntro": "Enter the email on your account. If it matches, we send a link that expires in one hour.",
+    "forgotSent": "If that email is registered, a reset link is on its way. Check spam if you do not see it.",
+    "sendReset": "Send reset link",
+    "resetTitle": "Choose a new password",
+    "resetInvalid": "This reset link is missing or broken. Request a new one.",
+    "confirmPassword": "Confirm password",
+    "passwordMismatch": "Passwords do not match.",
+    "savePassword": "Save password"
   },
   "register": {
     "title": "Create account",
@@ -330,8 +339,10 @@
     "emptyTitle": "This space is waiting for you",
     "loadFail": "Could not load the community.",
     "saveFail": "Could not save.",
-    "upvote": "Upvote",
-    "downvote": "Downvote",
+    "upvote": "Like",
+    "downvote": "Dislike",
+    "like": "Like",
+    "dislike": "Dislike",
     "commentsCount": "{{count}} comments",
     "guestRead": "You can read this community. Sign up to ask or reply.",
     "guestReply": "Sign in to leave a reply.",
@@ -341,6 +352,17 @@
     "reply": "Reply",
     "loginHint": "Sign in to post, comment, vote, or share a dating listing.",
     "postCount": "{{count}} posts"
+  },
+  "help": {
+    "link": "Help / Report",
+    "report": "Report",
+    "title": "Help and reports",
+    "intro": "If someone is harassing people, scamming, or breaking the rules, tell us. We can close their account so that email cannot sign up again.",
+    "aboutPost": "This report is about post {{id}}.",
+    "reason": "What happened?",
+    "submit": "Send report",
+    "sent": "Thanks. We will review this and can close the account if needed.",
+    "orEmail": "You can also email"
   },
   "dating": {
     "boardTitle": "Dating",
