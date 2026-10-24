@@ -76,7 +76,7 @@ export default function PostPage() {
         {comments.map((c) => (
           <li key={c.id} className="card comment-card">
             <p className="post-card__meta">{c.authorName}</p>
-            <p>{c.body}</p>
+            <p className="comment-card__body">{c.body}</p>
           </li>
         ))}
       </ul>
