@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
+import BrandLogo from "../components/BrandLogo";
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -11,6 +12,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [birthdate, setBirthdate] = useState("1995-01-01");
+  const [agreed, setAgreed] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const LETTER_NUMBER_SPACE_ONLY = /^[\p{L}\p{N} ]+$/u;
 
@@ -19,6 +21,10 @@ export default function RegisterPage() {
     setErr(null);
     if (!LETTER_NUMBER_SPACE_ONLY.test(displayName.trim())) {
       setErr(t("register.nameRule"));
+      return;
+    }
+    if (!agreed) {
+      setErr(t("register.mustAgree"));
       return;
     }
     try {
@@ -31,6 +37,7 @@ export default function RegisterPage() {
 
   return (
     <div className="forum-page">
+      <BrandLogo className="auth-logo" size={96} />
       <h1>{t("register.title")}</h1>
       <p className="subtle-hint">{t("register.communitySubtitle")}</p>
       <form onSubmit={(e) => void onSubmit(e)} className="card composer">
@@ -49,6 +56,18 @@ export default function RegisterPage() {
         <label>
           {t("register.birthdate")}
           <input type="date" value={birthdate} onChange={(e) => setBirthdate(e.target.value)} required />
+        </label>
+        <label className="agree-row">
+          <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} required />
+          <span>
+            {t("register.agreeBefore")}{" "}
+            <Link to="/legal/terms">{t("home.terms")}</Link>
+            {", "}
+            <Link to="/legal/privacy">{t("home.privacy")}</Link>
+            {", "}
+            <Link to="/legal/guidelines">{t("home.communityGuidelines")}</Link>
+            {t("register.agreeAfter")}
+          </span>
         </label>
         {err && <p className="err">{err}</p>}
         <button type="submit" className="btn">

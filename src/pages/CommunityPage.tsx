@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import PostList from "../components/PostList";
 import * as forum from "../forum/api";
+import { communityDescription, communityTitle } from "../forum/labels";
 import type { Community, ForumPost } from "../forum/types";
 
 export default function CommunityPage() {
@@ -63,8 +64,8 @@ export default function CommunityPage() {
         <header className="forum-page__head">
           <div>
             <p className="muted">c/{community.slug}</p>
-            <h1>{community.title}</h1>
-            <p className="subtle-hint">{community.description}</p>
+            <h1>{communityTitle(t, community.slug, community.title)}</h1>
+            <p className="subtle-hint">{communityDescription(t, community.slug, community.description)}</p>
           </div>
         </header>
       ) : null}

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import * as forum from "../forum/api";
+import { communityDescription, communityTitle } from "../forum/labels";
 import type { Community } from "../forum/types";
 
 export default function ExplorePage() {
@@ -40,9 +41,12 @@ export default function ExplorePage() {
         {communities.map((c) => (
           <li key={c.slug}>
             <Link to={`/c/${c.slug}`} className="community-card">
+              <span className="community-card__mark" aria-hidden="true">
+                {communityTitle(t, c.slug, c.title).slice(0, 1)}
+              </span>
               <p className="community-card__slug">c/{c.slug}</p>
-              <h2>{c.title}</h2>
-              <p>{c.description}</p>
+              <h2>{communityTitle(t, c.slug, c.title)}</h2>
+              <p>{communityDescription(t, c.slug, c.description)}</p>
               <p className="muted">{t("forum.postCount", { count: c.postCount ?? 0 })}</p>
             </Link>
           </li>

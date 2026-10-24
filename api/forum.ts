@@ -47,6 +47,7 @@ let pgPool: any = null;
 let neonSql: any = null;
 let neonBoundUrl: string | null = null;
 let schemaReady = false;
+let schemaPromise: Promise<void> | null = null;
 
 function shouldUseNeonHttp(url: string): boolean {
   if (!url || isUnsupportedForNodePg(url)) return false;
@@ -93,16 +94,384 @@ const SEED_COMMUNITIES: { slug: string; title: string; description: string; kind
   { slug: "news", title: "News", description: "Headlines and community news Mongolians want to discuss.", kind: "news" },
   { slug: "questions", title: "Questions", description: "Ask and answer. Guests can read; members can reply.", kind: "topic" },
   { slug: "dating", title: "Dating talk", description: "Optional dating conversation — not a swipe app.", kind: "dating" },
+  { slug: "jobs", title: "Jobs", description: "Work, visas, and career talk — not legal advice.", kind: "topic" },
+  { slug: "food", title: "Food", description: "Buuz, suutei tsai, groceries, restaurants.", kind: "topic" },
+  { slug: "students", title: "Students", description: "School, housing, and first years abroad.", kind: "topic" },
+  { slug: "housing", title: "Housing", description: "Rent, roommates, and moving.", kind: "topic" },
   { slug: "chicago", title: "Chicago", description: "Mongolians in Chicago.", kind: "city" },
   { slug: "los-angeles", title: "Los Angeles", description: "Mongolians in Los Angeles.", kind: "city" },
   { slug: "denver", title: "Denver", description: "Mongolians in Denver.", kind: "city" },
   { slug: "san-francisco", title: "San Francisco", description: "Mongolians in the Bay Area.", kind: "city" },
   { slug: "calgary", title: "Calgary", description: "Mongolians in Calgary.", kind: "city" },
   { slug: "ulaanbaatar", title: "Ulaanbaatar", description: "UB and Mongolia.", kind: "city" },
+  { slug: "toronto", title: "Toronto", description: "Mongolians in Toronto.", kind: "city" },
+  { slug: "new-york", title: "New York", description: "Mongolians in New York.", kind: "city" },
+  { slug: "seattle", title: "Seattle", description: "Mongolians in Seattle.", kind: "city" },
+  { slug: "washington-dc", title: "Washington DC", description: "Mongolians in the DC area.", kind: "city" },
+  { slug: "houston", title: "Houston", description: "Mongolians in Houston.", kind: "city" },
+  { slug: "boston", title: "Boston", description: "Mongolians in Boston.", kind: "city" },
+  { slug: "salt-lake-city", title: "Salt Lake City", description: "Mongolians in Salt Lake City.", kind: "city" },
+  { slug: "seoul", title: "Seoul", description: "Mongolians in Korea.", kind: "city" },
+  { slug: "prague", title: "Prague", description: "Mongolians in Czechia.", kind: "city" },
+  { slug: "london", title: "London", description: "Mongolians in the UK.", kind: "city" },
+  { slug: "sydney", title: "Sydney", description: "Mongolians in Australia.", kind: "city" },
 ];
+
+const SEED_PEOPLE: { key: string; name: string }[] = [
+  { key: "naraa", name: "Naraa" },
+  { key: "batu", name: "Batu" },
+  { key: "oyunaa", name: "Oyunaa" },
+  { key: "temuulen", name: "Temuulen" },
+  { key: "khulan", name: "Khulan" },
+  { key: "enkhee", name: "Enkhee" },
+  { key: "saruul", name: "Saruul" },
+  { key: "munkh", name: "Munkh" },
+];
+
+type SeedComment = { author: string; hoursAgo: number; body: string };
+type SeedPost = {
+  key: string;
+  slug: string;
+  author: string;
+  hoursAgo: number;
+  title: string;
+  body: string;
+  up: string[];
+  comments: SeedComment[];
+};
+
+const SEED_POSTS: SeedPost[] = [
+  {
+    key: "abroad-vs-home",
+    slug: "questions",
+    author: "naraa",
+    hoursAgo: 6,
+    title: "Гадаадад амьдарч байгаа хүмүүс ээ — эх оронтойгоо харьцуулахад ямар вэ?",
+    body: "Цалин, түрээс, гэр бүл, агаар. Зарим нь буцахаа бодож, зарим нь үлдэх гэж байна. Танайх яг ямар байна? Гоёчилж бичих хэрэггүй, энгийнээр ярина уу.",
+    up: ["batu", "oyunaa", "temuulen", "khulan", "enkhee"],
+    comments: [
+      {
+        author: "batu",
+        hoursAgo: 5,
+        body: "Цалин илүү, агаар илүү. Гэхдээ гэр бүл хол, түрээс үнэтэй. Дунд нь л явж байна.",
+      },
+      {
+        author: "oyunaa",
+        hoursAgo: 4,
+        body: "Анхны жил хэцүү. Дараа нь найз нөхөд, ажил олдвол их өөр болдог. Гэртээ очоод хэд хоног байгаад ирэхэд л харьцуулалт тодорхой болдог.",
+      },
+    ],
+  },
+  {
+    key: "usa-life",
+    slug: "jobs",
+    author: "temuulen",
+    hoursAgo: 14,
+    title: "Америкт ажиллаж байгаа хүмүүс, амьдрал яг ямар юм бэ?",
+    body: "Программист төгссөн. Зарим нь боломж их гэж, зарим нь ганцаардал, эрүүл мэндийн даатгал, виз гэж ярьдаг. Танай компани, түрээс, амралтын өдөр ямар байгааг сонсмоор байна. Энэ бол хуулийн зөвлөгөө биш — зөвхөн туршлага.",
+    up: ["naraa", "munkh", "enkhee", "saruul"],
+    comments: [
+      {
+        author: "munkh",
+        hoursAgo: 12,
+        body: "Ажил олдвол цалин сайн. Гэхдээ өвдвөл даатгалгүй бол маш хэцүү. Амралт Монгол шиг урт биш.",
+      },
+    ],
+  },
+  {
+    key: "keep-culture",
+    slug: "general",
+    author: "khulan",
+    hoursAgo: 20,
+    title: "Гадаадад Монгол соёлоо яаж хадгалах вэ?",
+    body: "Наадам, Цагаан сар, монгол телевиз, хүүхдэд хэл заах. Танай хотод юу ажилладаг вэ? Facebook групп, сүм, спортын клуб — юу нь үнэхээр хэрэгтэй вэ?",
+    up: ["naraa", "oyunaa", "saruul"],
+    comments: [
+      {
+        author: "saruul",
+        hoursAgo: 18,
+        body: "Хүүхэдтэй бол монгол цэцэрлэг эсвэл ням гарагийн хичээл хай. Хотод Наадам байвал оч. Байхгүй бол гэртээ бууз хийж, дуу оруулаад л эхэлдэг.",
+      },
+    ],
+  },
+  {
+    key: "buuz-map",
+    slug: "food",
+    author: "oyunaa",
+    hoursAgo: 9,
+    title: "Хотуудад бууз, мах, сүүтэй цай хаанаас авдаг вэ?",
+    body: "Чикаго, Калгари, Лос-Анжелес, Сөүл, Прага — монгол дэлгүүр, ресторан, эсвэл хамт захиалдаг группийн нэр хуваалцана уу. Шинэ хүмүүст энэ хамгийн түрүүнд хэрэгтэй.",
+    up: ["batu", "naraa", "khulan", "enkhee", "temuulen", "munkh"],
+    comments: [
+      { author: "batu", hoursAgo: 8, body: "Чикагод Азийн дэлгүүрээс хурганы мах, гэртээ бууз хийдэг. Ресторан цөөн." },
+      { author: "enkhee", hoursAgo: 7, body: "Калгари, Торонтод монгол дэлгүүр олддог. LA-д Koreatown орчимд асуугаарай." },
+    ],
+  },
+  {
+    key: "ub-air",
+    slug: "ulaanbaatar",
+    author: "enkhee",
+    hoursAgo: 30,
+    title: "УБ-ын агаар энэ өвөл ямар байна?",
+    body: "Гадаадаас буцахаар төлөвлөж байгаа хүмүүс асууж байна. Гэр хороолол, төв, хүүхэдтэй гэр бүл — танайх яг юу харж байна?",
+    up: ["naraa", "batu", "oyunaa"],
+    comments: [{ author: "naraa", hoursAgo: 28, body: "Өвлийн орой хүнд. Маск, агаар шүүгч ярьдаг. Зун огт өөр." }],
+  },
+  {
+    key: "send-money",
+    slug: "questions",
+    author: "batu",
+    hoursAgo: 11,
+    title: "Монгол руу мөнгө яаж хямд дамжуулах вэ?",
+    body: "Wise, банк, найзаараа дамжуулах — та юу хэрэглэж байгаа вэ? Шийтгэл, хурд, лимит. Хувийн дансны дугаар битгий тавь.",
+    up: ["temuulen", "munkh", "saruul", "khulan"],
+    comments: [
+      {
+        author: "temuulen",
+        hoursAgo: 10,
+        body: "Би банкны апп + Wise хоёуланг харьцуулдаг. Тухайн үеийн ханш өөр. Шинэ хүнд нэг том гүйлгээгээр туршаарай.",
+      },
+    ],
+  },
+  {
+    key: "flights-ub",
+    slug: "questions",
+    author: "saruul",
+    hoursAgo: 40,
+    title: "УБ руу хямд нислэг хэзээ, хаанаас авах вэ?",
+    body: "Цагаан сар, Наадам, зуны амралт. Сеул, Стамбул, Бээжин дамжлага. Та хэдэн сарын өмнө захиалдаг вэ?",
+    up: ["oyunaa", "naraa", "enkhee"],
+    comments: [],
+  },
+  {
+    key: "student-first-year",
+    slug: "students",
+    author: "munkh",
+    hoursAgo: 16,
+    title: "Оюутны эхний жил: банк, утас, өрөө",
+    body: "Шинээр ирсэн хүмүүст. Банк нээх, SIM, кампусын гаднах өрөө, хамт амьдрах. Танай улсад юу нь хамгийн түрүүнд хэрэгтэй вэ?",
+    up: ["khulan", "temuulen", "naraa"],
+    comments: [
+      {
+        author: "khulan",
+        hoursAgo: 15,
+        body: "Эхлээд сургуулийн орон сууц, дараа нь банк. Ганцаараа түрээс хийхээр бүү яар. Facebook дээрх зар болгонд бүү итгэ.",
+      },
+    ],
+  },
+  {
+    key: "rent-abroad",
+    slug: "housing",
+    author: "oyunaa",
+    hoursAgo: 22,
+    title: "Түрээс хэр үнэтэй вэ, хамт амьдрах уу?",
+    body: "Нэг өрөө vs хамт амьдрах. Барьцаа, кредит, батлан даагч. Чикаго, Торонто, Сөүл, Прага — ойролцоо тоо хэлбэл шинэ хүнд тусална.",
+    up: ["batu", "munkh", "saruul"],
+    comments: [],
+  },
+  {
+    key: "chicago-weekend",
+    slug: "chicago",
+    author: "batu",
+    hoursAgo: 3,
+    title: "Чикаго: энэ амралтын өдөр бууз, сагс, эсвэл яриа",
+    body: "Хотын монголчуудтай уулзмаар байна. Хоол, номын сан, эсвэл энгийн кофе. Шинэ хүмүүс ч байж болно. Хаана цугладаг вэ?",
+    up: ["naraa", "oyunaa"],
+    comments: [{ author: "naraa", hoursAgo: 2, body: "Би ч бас хайж байна. Хүнсний дэлгүүр эсвэл Наадмын бэлтгэл дээр олддог." }],
+  },
+  {
+    key: "calgary-new",
+    slug: "calgary",
+    author: "enkhee",
+    hoursAgo: 18,
+    title: "Калгари шинээр ирлээ — дэлгүүр, эмч, жолооны үнэмлэх",
+    body: "Өвөл ойртож байна. Дулаан куртка, монгол хүнс, гэр бүлийн эмч. Танайх эхний сард юу хийсэн бэ?",
+    up: ["saruul", "batu", "naraa", "khulan"],
+    comments: [
+      { author: "saruul", hoursAgo: 17, body: "Winter tires бүү мартаарай. Дэлгүүр Northeast талд олддог гэж сонссон." },
+    ],
+  },
+  {
+    key: "la-food",
+    slug: "los-angeles",
+    author: "khulan",
+    hoursAgo: 26,
+    title: "LA-д монгол хоол, Koreatown, цуглаан",
+    body: "Лос-Анжелес том. Хаанаас бууз, хуушуур, эсвэл монголчуудтай таардаг вэ? Машингүй бол яаж хүрэх вэ?",
+    up: ["oyunaa", "temuulen"],
+    comments: [],
+  },
+  {
+    key: "denver-weekend",
+    slug: "denver",
+    author: "temuulen",
+    hoursAgo: 33,
+    title: "Денвер: уул, цана, Наадам",
+    body: "Ууланд гарах, өвлийн спорт, зуны Наадам. Шинэ хүмүүсийг авч явдаг груп байдаг уу?",
+    up: ["munkh", "batu"],
+    comments: [],
+  },
+  {
+    key: "bay-intern",
+    slug: "san-francisco",
+    author: "munkh",
+    hoursAgo: 28,
+    title: "Bay Area intern / tech — монголчууд холбоо барина уу",
+    body: "Сургууль эсвэл ажилд орж ирсэн. Орон сууц үнэтэй. Туршлага, resume, өрөө хуваах талаар ярилцмаар байна.",
+    up: ["temuulen", "naraa", "khulan"],
+    comments: [],
+  },
+  {
+    key: "toronto-vs-calgary",
+    slug: "toronto",
+    author: "saruul",
+    hoursAgo: 8,
+    title: "Торонто vs Калгари vs Ванкувер — хаана амьдрах вэ?",
+    body: "Ажил, цас, монгол нийгэмлэг, түрээс. Гэр бүлтэй, ганцаараа хоёуланд нь сонсохыг хүсэж байна.",
+    up: ["enkhee", "oyunaa", "batu", "naraa"],
+    comments: [
+      { author: "enkhee", hoursAgo: 7, body: "Калгари түрээс арай хямд, өвөл хүнд. Торонтод ажил, нийтийн тээвэр илүү." },
+    ],
+  },
+  {
+    key: "nyc-meet",
+    slug: "new-york",
+    author: "naraa",
+    hoursAgo: 36,
+    title: "Нью-Йорк дахь монголчууд, хаана уулздаг вэ?",
+    body: "Queens, Brooklyn, Manhattan. Цагаан сар, концерт, эсвэл энгийн цуглаан. Шинэ хүн хаашаа явах вэ?",
+    up: ["khulan", "oyunaa"],
+    comments: [],
+  },
+  {
+    key: "seattle-rain",
+    slug: "seattle",
+    author: "batu",
+    hoursAgo: 44,
+    title: "Сиэтл: бороо, ажил, нийгэмлэг",
+    body: "Tech, кофе, бороо. Монголчууд хэр олон, Наадам хаана болдог вэ?",
+    up: ["munkh", "temuulen"],
+    comments: [],
+  },
+  {
+    key: "dc-embassy",
+    slug: "washington-dc",
+    author: "oyunaa",
+    hoursAgo: 50,
+    title: "DC орчим: паспорт, нийгэмлэг, цуглаан",
+    body: "Элчин, бичиг баримт, амралтын өдрийн цуглаан. Туршлагаа хуваалцана уу — хуулийн зөвлөгөө биш.",
+    up: ["naraa", "saruul"],
+    comments: [],
+  },
+  {
+    key: "seoul-work",
+    slug: "seoul",
+    author: "enkhee",
+    hoursAgo: 12,
+    title: "Сөүлд ажиллаж, сурч байгаа хүмүүс",
+    body: "Хэл, дотуур байр, цалин, амралт. Солонгост удаан байгаа хүмүүс шинээр ирсэнд юу зөвлөх вэ?",
+    up: ["batu", "khulan", "munkh", "naraa", "oyunaa"],
+    comments: [
+      { author: "khulan", hoursAgo: 11, body: "Хэл сурах нь бүхнийг өөрчилдөг. Эхний жил ядраана, дараа нь найз нөхөд олддог." },
+    ],
+  },
+  {
+    key: "prague-students",
+    slug: "prague",
+    author: "khulan",
+    hoursAgo: 24,
+    title: "Прага / Чех дэх оюутнууд",
+    body: "Сургууль, виз, ажил. Монголчууд их. Шинэ семестрт ирж байгаа хүмүүст өрөө, утас, даатгал дээр юу чухал вэ?",
+    up: ["saruul", "enkhee", "temuulen"],
+    comments: [],
+  },
+  {
+    key: "kids-language",
+    slug: "general",
+    author: "saruul",
+    hoursAgo: 15,
+    title: "Гадаадад өсөж байгаа хүүхдэд монгол хэл яаж заах вэ?",
+    body: "Гэртээ зөвхөн монгол ярих, YouTube, ном, эцэг эхийн дүрэм. Хоёр хэлтэй хүүхэдтэй аав ээжүүд юу нь ажилладаг вэ?",
+    up: ["naraa", "oyunaa", "khulan", "enkhee"],
+    comments: [
+      { author: "oyunaa", hoursAgo: 13, body: "Гэртээ нэг хэл, гадаа нэг хэл гэж хатуу барих нь надад тусалсан. Төгс биш, гэхдээ зогсдоггүй." },
+    ],
+  },
+  {
+    key: "news-ub-traffic",
+    slug: "news",
+    author: "temuulen",
+    hoursAgo: 10,
+    title: "УБ-ын түгжрэл, шинэ зам — танай өдөр ямар байна?",
+    body: "Мэдээ уншаад дуусдаггүй. Та хотод яг юу мэдэрч байна? Нийтийн тээвэр, машин, алхах. Эх сурвалжаа нэрлээд, цуурхал битгий тараагаарай.",
+    up: ["batu", "naraa", "munkh"],
+    comments: [],
+  },
+  {
+    key: "london-life",
+    slug: "london",
+    author: "naraa",
+    hoursAgo: 55,
+    title: "Лондон / UK: сургууль, ажил, цаг агаар",
+    body: "Бороо, түрээс, NHS. Монголчуудтай хаана таардаг вэ?",
+    up: ["khulan"],
+    comments: [],
+  },
+  {
+    key: "sydney-life",
+    slug: "sydney",
+    author: "munkh",
+    hoursAgo: 60,
+    title: "Сидней: виз, ажил, далайн эрэг",
+    body: "Австралид байгаа монголчууд. Эхний жил юу нь хамгийн хэцүү байсан бэ?",
+    up: ["saruul", "temuulen"],
+    comments: [],
+  },
+  {
+    key: "houston-tx",
+    slug: "houston",
+    author: "batu",
+    hoursAgo: 38,
+    title: "Хьюстон: машин, халуун, монголчууд",
+    body: "Техас том. Жолоо барих, зуны халуун, ажил. Танайх хаана цугладаг вэ?",
+    up: ["enkhee", "naraa"],
+    comments: [],
+  },
+  {
+    key: "boston-school",
+    slug: "boston",
+    author: "khulan",
+    hoursAgo: 42,
+    title: "Бостон дахь оюутнууд, өвөл, Т",
+    body: "Сургууль, цас, нийтийн тээвэр. Шинээр ирж байгаа хүмүүст өрөө, куртка, SIM дээр зөвлөгөө хэрэгтэй.",
+    up: ["munkh", "oyunaa"],
+    comments: [],
+  },
+  {
+    key: "slc-community",
+    slug: "salt-lake-city",
+    author: "oyunaa",
+    hoursAgo: 48,
+    title: "Солт-Лейк: нийгэмлэг, уул, Наадам",
+    body: "Энд монголчууд олон гэж сонссон. Сүм, спорт, Цагаан сар хаана болдог вэ?",
+    up: ["saruul", "batu", "naraa"],
+    comments: [],
+  },
+];
+
+function seedEmail(key: string): string {
+  return `seed-${key}@uchral.internal`;
+}
 
 async function ensureSchema() {
   if (schemaReady) return;
+  if (!schemaPromise) schemaPromise = buildSchema().finally(() => {
+    if (!schemaReady) schemaPromise = null;
+  });
+  await schemaPromise;
+}
+
+async function buildSchema() {
   await dbQuery(`
     CREATE TABLE IF NOT EXISTS forum_users (
       id BIGSERIAL PRIMARY KEY,
@@ -164,6 +533,69 @@ async function ensureSchema() {
        ON CONFLICT (slug) DO NOTHING`,
       [c.slug, c.title, c.description, c.kind]
     );
+  }
+  await dbQuery(`ALTER TABLE forum_posts ADD COLUMN IF NOT EXISTS seed_key TEXT`);
+  await dbQuery(`ALTER TABLE forum_comments ADD COLUMN IF NOT EXISTS seed_key TEXT`);
+  await dbQuery(
+    `DELETE FROM forum_posts a USING forum_posts b
+     WHERE a.seed_key IS NOT NULL AND a.seed_key = b.seed_key AND a.id > b.id`
+  );
+  await dbQuery(
+    `DELETE FROM forum_comments a USING forum_comments b
+     WHERE a.seed_key IS NOT NULL AND a.seed_key = b.seed_key AND a.id > b.id`
+  );
+  await dbQuery(
+    `CREATE UNIQUE INDEX IF NOT EXISTS forum_posts_seed_key_uidx ON forum_posts (seed_key) WHERE seed_key IS NOT NULL`
+  );
+  await dbQuery(
+    `CREATE UNIQUE INDEX IF NOT EXISTS forum_comments_seed_key_uidx ON forum_comments (seed_key) WHERE seed_key IS NOT NULL`
+  );
+  const { rows: seedUsers } = await dbQuery(
+    `SELECT email FROM forum_users WHERE email LIKE 'seed-%@uchral.internal'`
+  );
+  const haveUser = new Set(seedUsers.map((r: { email: string }) => r.email));
+  for (const person of SEED_PEOPLE) {
+    const email = seedEmail(person.key);
+    if (haveUser.has(email)) continue;
+    await dbQuery(
+      `INSERT INTO forum_users (email, password_hash, display_name, birthdate)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (email) DO NOTHING`,
+      [email, hashPassword(randomBytes(18).toString("hex")), person.name, "1993-04-12"]
+    );
+  }
+  for (const post of SEED_POSTS) {
+    const { rows: existing } = await dbQuery(`SELECT id FROM forum_posts WHERE seed_key = $1`, [post.key]);
+    if (existing[0]) continue;
+    const { rows } = await dbQuery(
+      `INSERT INTO forum_posts (community_id, author_id, title, body, seed_key, created_at)
+       SELECT c.id, u.id, $1, $2, $3, NOW() - ($4::int * INTERVAL '1 hour')
+       FROM forum_communities c
+       JOIN forum_users u ON u.email = $5
+       WHERE c.slug = $6
+       ON CONFLICT (seed_key) WHERE seed_key IS NOT NULL DO NOTHING
+       RETURNING id`,
+      [post.title, post.body, post.key, post.hoursAgo, seedEmail(post.author), post.slug]
+    );
+    const postId = rows[0]?.id;
+    if (!postId) continue;
+    for (const voter of post.up) {
+      await dbQuery(
+        `INSERT INTO forum_votes (user_id, post_id, value)
+         SELECT u.id, $1, 1 FROM forum_users u WHERE u.email = $2
+         ON CONFLICT DO NOTHING`,
+        [postId, seedEmail(voter)]
+      );
+    }
+    for (let i = 0; i < post.comments.length; i += 1) {
+      const comment = post.comments[i];
+      await dbQuery(
+        `INSERT INTO forum_comments (post_id, author_id, body, seed_key, created_at)
+         SELECT $1, u.id, $2, $3, NOW() - ($4::int * INTERVAL '1 hour')
+         FROM forum_users u WHERE u.email = $5`,
+        [postId, comment.body, `${post.key}-c${i}`, comment.hoursAgo, seedEmail(comment.author)]
+      );
+    }
   }
   schemaReady = true;
 }

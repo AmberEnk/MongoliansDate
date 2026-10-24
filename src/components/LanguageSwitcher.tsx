@@ -14,9 +14,9 @@ export default function LanguageSwitcher() {
           void i18n.changeLanguage(e.target.value);
         }}
       >
-        <option value="en">{t("lang.en")}</option>
         <option value="mn">{t("lang.mn")}</option>
         <option value="mn-Mong">{t("lang.mnMong")}</option>
+        <option value="en">{t("lang.en")}</option>
       </select>
     </label>
   );

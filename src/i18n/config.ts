@@ -54,8 +54,9 @@ void i18n
       mn: { translation: mnTranslation },
       "mn-Mong": { translation: mnMongTranslation },
     },
-    fallbackLng: "en",
-    supportedLngs: ["en", "mn", "mn-Mong"],
+    fallbackLng: "mn",
+    supportedLngs: ["mn", "mn-Mong", "en"],
+    nonExplicitSupportedLngs: true,
     detection: {
       order: ["localStorage", "navigator"],
       caches: ["localStorage"],

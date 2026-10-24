@@ -1,8 +1,9 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import InstallPrompt from "./InstallPrompt";
+import BrandLogo from "./BrandLogo";
 
 export default function AppShell() {
   const { loggedIn, logout, user, ready } = useAuth();
@@ -26,8 +27,13 @@ export default function AppShell() {
     <div className="app">
       <header className="app-header">
         <div className="lang-bar forum-topbar">
-          <NavLink to="/" className="brand-link">
-            Uchral
+          <NavLink to="/" className="brand-link" aria-label={t("brand.full")}>
+            <BrandLogo className="brand-link__mark" size={58} decorative />
+            <span className="brand-link__text">
+              <span className="brand-link__name">{t("brand.name")}</span>
+              <span className="brand-link__tag">{t("brand.networking")}</span>
+              <span className="brand-link__mn">{t("brand.mn")}</span>
+            </span>
           </NavLink>
           <nav className="forum-tabs" aria-label={t("forum.mainNav")}>
             {tabs.map((tab) => (
@@ -64,6 +70,15 @@ export default function AppShell() {
       <main className="app-main">
         <Outlet />
       </main>
+      <footer className="app-footer">
+        <BrandLogo className="app-footer__logo" size={72} decorative />
+        <p>{t("brand.footer")}</p>
+        <nav className="app-footer__legal" aria-label={t("brand.footer")}>
+          <Link to="/legal/guidelines">{t("home.communityGuidelines")}</Link>
+          <Link to="/legal/privacy">{t("home.privacy")}</Link>
+          <Link to="/legal/terms">{t("home.terms")}</Link>
+        </nav>
+      </footer>
       <InstallPrompt />
     </div>
   );

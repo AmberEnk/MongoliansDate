@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
+import BrandLogo from "./BrandLogo";
 import * as forum from "../forum/api";
 import type { ForumPost } from "../forum/types";
 
@@ -42,7 +43,22 @@ export default function PostList({
   }
 
   if (!posts.length) {
-    return <p className="muted forum-empty">{t("forum.empty")}</p>;
+    return (
+      <div className="forum-empty-state">
+        <BrandLogo size={128} decorative />
+        <h2>{t("forum.emptyTitle")}</h2>
+        <p className="muted">{t("forum.empty")}</p>
+        {loggedIn ? (
+          <Link to="/submit" className="btn">
+            {t("forum.newPost")}
+          </Link>
+        ) : (
+          <Link to="/register" className="btn">
+            {t("forum.joinToPost")}
+          </Link>
+        )}
+      </div>
+    );
   }
 
   return (

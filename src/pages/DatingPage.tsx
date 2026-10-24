@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
+import BrandLogo from "../components/BrandLogo";
 import * as forum from "../forum/api";
 import type { DatingListing } from "../forum/types";
 
@@ -103,7 +104,12 @@ export default function DatingPage() {
           </li>
         ))}
       </ul>
-      {!listings.length ? <p className="muted forum-empty">{t("dating.empty")}</p> : null}
+      {!listings.length ? (
+        <div className="forum-empty-state">
+          <BrandLogo size={120} decorative />
+          <p className="muted">{t("dating.empty")}</p>
+        </div>
+      ) : null}
     </div>
   );
 }

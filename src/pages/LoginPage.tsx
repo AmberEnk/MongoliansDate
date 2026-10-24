@@ -2,6 +2,8 @@ import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
+import BrandLogo from "../components/BrandLogo";
+import { CONTACT_EMAIL } from "../constants";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -24,6 +26,7 @@ export default function LoginPage() {
 
   return (
     <div className="forum-page">
+      <BrandLogo className="auth-logo" size={96} />
       <h1>{t("login.title")}</h1>
       <p className="subtle-hint">{t("forum.loginHint")}</p>
       <form onSubmit={(e) => void onSubmit(e)} className="card composer">
@@ -42,6 +45,8 @@ export default function LoginPage() {
       </form>
       <p className="muted">
         <Link to="/register">{t("login.createAccount")}</Link>
+        {" · "}
+        <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Uchral password")}`}>{t("login.forgotPassword")}</a>
       </p>
     </div>
   );

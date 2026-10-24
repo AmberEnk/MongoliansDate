@@ -1,6 +1,41 @@
 {
   "meta": {
-    "title": "ᠮᠣᠩᠭᠣᠯᠢᠶᠠᠨ ᠳ᠋ᠧᠶᠢᠲ"
+    "title": "UCHRAL NETWORKING"
+  },
+  "brand": {
+    "name": "UCHRAL",
+    "networking": "NETWORKING",
+    "mn": "ᠤᠴᠢᠷᠠᠯ ᠰᠦᠯᠵᠢᠶ᠎ᠡ",
+    "full": "UCHRAL NETWORKING",
+    "logoAlt": "ᠰᠢᠷ᠎ᠠ ᠴᠡᠩᠬᠡᠷ ᠤᠯᠠᠭᠠᠨ ᠳᠡᠭᠡᠯ ᠲᠡᠢ ᠭᠤᠷᠪᠠᠨ ᠬᠡᠦᠬᠡᠳ",
+    "footer": "UCHRAL NETWORKING"
+  },
+  "communities": {
+    "general": { "title": "ᠶᠡᠷᠦᠩᠬᠡᠢ", "description": "ᠮᠣᠩᠭᠣᠯ ᠠᠷᠠᠳ ᠤᠨ ᠠᠰᠠᠭᠤᠯᠲᠠ ᠶᠠᠷᠢᠶ᠎ᠠ" },
+    "news": { "title": "ᠮᠡᠳᠡᠭᠡ", "description": "ᠮᠡᠳᠡᠭᠡ ᠶᠢᠨ ᠬᠡᠯᠡᠯᠴᠡᠭᠦᠯᠡᠭᠡ" },
+    "questions": { "title": "ᠠᠰᠠᠭᠤᠯᠲᠠ", "description": "ᠠᠰᠠᠭᠤᠵᠤ ᠬᠠᠷᠢᠭᠤᠯᠤᠨ᠎ᠠ" },
+    "dating": { "title": "ᠲᠠᠨᠢᠯᠴᠠᠬᠤ", "description": "ᠲᠠᠨᠢᠯᠴᠠᠬᠤ ᠶᠢᠨ ᠶᠠᠷᠢᠶ᠎ᠠ" },
+    "chicago": { "title": "Chicago", "description": "Chicago ᠳᠠᠬᠢ ᠮᠣᠩᠭᠣᠯᠴᠤᠳ" },
+    "los-angeles": { "title": "Los Angeles", "description": "LA ᠳᠠᠬᠢ ᠮᠣᠩᠭᠣᠯᠴᠤᠳ" },
+    "denver": { "title": "Denver", "description": "Denver ᠳᠠᠬᠢ ᠮᠣᠩᠭᠣᠯᠴᠤᠳ" },
+    "san-francisco": { "title": "San Francisco", "description": "Bay Area" },
+    "calgary": { "title": "Calgary", "description": "Calgary ᠳᠠᠬᠢ ᠮᠣᠩᠭᠣᠯᠴᠤᠳ" },
+    "ulaanbaatar": { "title": "ᠤᠯᠠᠭᠠᠨᠪᠠᠭᠠᠲᠤᠷ", "description": "ᠤᠪ ᠪᠣᠯᠤᠨ ᠮᠣᠩᠭᠣᠯ" },
+    "toronto": { "title": "Toronto", "description": "Toronto ᠳᠠᠬᠢ ᠮᠣᠩᠭᠣᠯᠴᠤᠳ" },
+    "new-york": { "title": "New York", "description": "New York ᠳᠠᠬᠢ ᠮᠣᠩᠭᠣᠯᠴᠤᠳ" },
+    "seattle": { "title": "Seattle", "description": "Seattle ᠳᠠᠬᠢ ᠮᠣᠩᠭᠣᠯᠴᠤᠳ" },
+    "washington-dc": { "title": "Washington DC", "description": "DC" },
+    "houston": { "title": "Houston", "description": "Houston ᠳᠠᠬᠢ ᠮᠣᠩᠭᠣᠯᠴᠤᠳ" },
+    "boston": { "title": "Boston", "description": "Boston ᠳᠠᠬᠢ ᠮᠣᠩᠭᠣᠯᠴᠤᠳ" },
+    "salt-lake-city": { "title": "Salt Lake City", "description": "Salt Lake" },
+    "seoul": { "title": "Seoul", "description": "ᠰᠣᠯᠤᠩᠭᠤᠰ" },
+    "prague": { "title": "Prague", "description": "Czechia" },
+    "london": { "title": "London", "description": "UK" },
+    "sydney": { "title": "Sydney", "description": "Australia" },
+    "jobs": { "title": "ᠠᠵᠢᠯ", "description": "ᠠᠵᠢᠯ ᠪᠣᠯᠤᠨ ᠸᠢᠽ" },
+    "food": { "title": "ᠬᠣᠭᠤᠯ᠎ᠠ", "description": "ᠪᠤᠤᠵᠠ ᠴᠠᠢ" },
+    "students": { "title": "ᠣᠶᠤᠲᠠᠨ", "description": "ᠰᠤᠷᠭᠠᠭᠤᠯᠢ" },
+    "housing": { "title": "ᠣᠷᠣᠨ ᠰᠤᠤᠴ", "description": "ᠲᠦᠷᠢᠶᠡᠰ" }
   },
   "common": {
     "loading": "ᠠᠴᠢᠶᠠᠯᠠᠵᠤ ᠪᠠᠢᠨ᠎ᠠ ᠃",
@@ -22,12 +57,16 @@
   },
   "login": {
     "title": "ᠨᠡᠪᠲᠡᠷᠡᠬᠦ",
-    "createAccount": "ᠪᠦᠷᠢᠳᠬᠡᠯ ᠪᠠᠢᠭᠤᠯᠬᠤ"
+    "createAccount": "ᠪᠦᠷᠢᠳᠬᠡᠯ ᠪᠠᠢᠭᠤᠯᠬᠤ",
+    "forgotPassword": "ᠨᠢᠭᠤᠴᠠ ᠦᠭᠡ ᠮᠠᠷᠲᠠᠪᠠ ᠤᠤ"
   },
   "register": {
     "title": "ᠪᠦᠷᠢᠳᠬᠡᠯ ᠪᠠᠢᠭᠤᠯᠬᠤ",
     "subtitle": "18 ᠨᠠᠰᠤᠲᠠᠶ ᠪᠠᠢᠬᠤ ᠬᠡᠷᠡᠭᠲᠡᠶ ᠃ ᠠᠩᠬᠠᠨ ᠤ ᠪᠠᠢᠷᠢ ᠯᠤᠰ ᠠᠩᠵᠢᠯᠠᠰ ᠤᠨ ᠣᠷᠴᠢᠮ ᠳᠤ ᠲᠣᠬᠢᠷᠠᠭᠤᠯᠤᠨ᠎ᠠ ᠃",
-    "communitySubtitle": "18+ ᠃ ᠠᠰᠠᠭᠤᠯᠲᠠ ᠠᠰᠠᠭᠤᠬᠤ ᠪᠣᠯᠤᠨ ᠬᠣᠲᠠ ᠶᠢᠨ ᠪᠦᠯᠦᠭ ᠨᠡᠭᠡᠬᠦ ᠳᠦ ᠪᠦᠷᠢᠳᠬᠡᠯ ᠪᠠᠢᠭᠤᠯᠤᠨ᠎ᠠ ᠃",
+    "communitySubtitle": "18+ ᠃ ᠪᠢᠴᠢᠬᠦ ᠳᠦ ᠪᠦᠷᠢᠳᠬᠡᠯ ᠃",
+    "agreeBefore": "18+ ᠪᠣᠯᠤᠨ",
+    "agreeAfter": " ᠵᠥᠪᠰᠢᠶᠡᠷᠡᠨ᠎ᠡ",
+    "mustAgree": "ᠨᠥᠬᠥᠴᠡᠯ ᠢ ᠵᠥᠪᠰᠢᠶᠡᠷᠡ",
     "nameRule": "ᠨᠡᠷ᠎ᠡ ᠳᠦ ᠵᠥᠪᠬᠡᠨ ᠦᠰᠦᠭ ᠲᠣᠭ᠎ᠠ ᠪᠠᠢᠵᠤ ᠪᠣᠯᠤᠨ᠎ᠠ ᠃",
     "passwordHint": "ᠨᠢᠭᠤᠴᠠ ᠦᠭᠡ ᠬᠠᠮᠤᠭ ᠤᠨ ᠪᠠᠭ᠎ᠠ 10 ᠦᠰᠦᠭ",
     "displayName": "ᠬᠠᠷᠠᠭᠳᠠᠬᠤ ᠨᠡᠷ᠎ᠡ",
@@ -194,7 +233,7 @@
     "news": "ᠮᠡᠳᠡᠭᠡ",
     "explore": "ᠨᠡᠭᠡᠬᠦ",
     "dating": "ᠲᠠᠨᠢᠯᠴᠠᠬᠤ",
-    "homeIntro": "ᠮᠣᠩᠭᠣᠯ ᠠᠷᠠᠳ ᠤᠨ ᠰᠢᠨ᠎ᠡ ᠶᠠᠷᠢᠶ᠎ᠠ ᠃ ᠬᠡᠨ ᠴᠤ ᠤᠩᠰᠢᠵᠤ ᠪᠣᠯᠤᠨ᠎ᠠ ᠃",
+    "homeIntro": "Uchral ᠪᠣᠯ ᠮᠣᠩᠭᠣᠯ ᠠᠷᠠᠳ ᠤᠨ Reddit ᠃ ᠬᠡᠨ ᠴᠤ ᠤᠩᠰᠢᠵᠤ ᠪᠣᠯᠤᠨ᠎ᠠ ᠃",
     "popularIntro": "ᠣᠳᠣ ᠰᠠᠨᠠᠯ ᠠᠪᠤᠵᠤ ᠪᠠᠢᠭ᠎ᠠ ᠰᠡᠳᠦᠪ",
     "newsIntro": "ᠮᠡᠳᠡᠭᠡ ᠶᠢᠨ ᠶᠠᠷᠢᠶ᠎ᠠ",
     "exploreIntro": "ᠰᠡᠳᠦᠪ ᠪᠣᠯᠤᠨ ᠬᠣᠲᠠ ᠶᠢᠨ ᠪᠦᠯᠦᠭ",
@@ -212,6 +251,7 @@
     "postBody": "ᠲᠧᠺᠰᠲ",
     "publish": "ᠨᠡᠶᠢᠲᠡᠯᠡᠬᠦ",
     "empty": "ᠣᠳᠣ ᠬᠣᠭᠣᠰᠤᠨ",
+    "emptyTitle": "ᠡᠨᠡ ᠣᠷᠣᠨ ᠵᠠᠢ ᠲᠠᠨ ᠢ ᠬᠦᠯᠢᠶᠡᠵᠦ ᠪᠠᠢᠨ᠎ᠠ",
     "loadFail": "ᠠᠴᠢᠶᠠᠯᠠᠵᠤ ᠦᠯᠦ ᠴᠢᠳᠠᠪᠠ",
     "saveFail": "ᠬᠠᠳᠠᠭᠠᠯᠠᠵᠤ ᠦᠯᠦ ᠴᠢᠳᠠᠪᠠ",
     "upvote": "ᠳᠡᠮᠵᠢᠬᠦ",

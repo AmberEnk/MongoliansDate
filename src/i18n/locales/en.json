@@ -1,6 +1,116 @@
 {
   "meta": {
-    "title": "Uchral"
+    "title": "UCHRAL NETWORKING"
+  },
+  "brand": {
+    "name": "UCHRAL",
+    "networking": "NETWORKING",
+    "mn": "УЧРАЛ СҮЛЖЭЭ",
+    "full": "UCHRAL NETWORKING",
+    "logoAlt": "Three children holding hands in yellow, blue, and red Mongolian deels",
+    "footer": "UCHRAL NETWORKING"
+  },
+  "communities": {
+    "general": {
+      "title": "General",
+      "description": "Anything Mongolian — questions, stories, daily life."
+    },
+    "news": {
+      "title": "News",
+      "description": "Headlines and community news Mongolians want to discuss."
+    },
+    "questions": {
+      "title": "Questions",
+      "description": "Ask and answer. Guests can read; members can reply."
+    },
+    "dating": {
+      "title": "Dating talk",
+      "description": "Optional dating conversation — not a swipe app."
+    },
+    "chicago": {
+      "title": "Chicago",
+      "description": "Mongolians in Chicago."
+    },
+    "los-angeles": {
+      "title": "Los Angeles",
+      "description": "Mongolians in Los Angeles."
+    },
+    "denver": {
+      "title": "Denver",
+      "description": "Mongolians in Denver."
+    },
+    "san-francisco": {
+      "title": "San Francisco",
+      "description": "Mongolians in the Bay Area."
+    },
+    "calgary": {
+      "title": "Calgary",
+      "description": "Mongolians in Calgary."
+    },
+    "ulaanbaatar": {
+      "title": "Ulaanbaatar",
+      "description": "UB and Mongolia."
+    },
+    "toronto": {
+      "title": "Toronto",
+      "description": "Mongolians in Toronto."
+    },
+    "new-york": {
+      "title": "New York",
+      "description": "Mongolians in New York."
+    },
+    "seattle": {
+      "title": "Seattle",
+      "description": "Mongolians in Seattle."
+    },
+    "washington-dc": {
+      "title": "Washington DC",
+      "description": "Mongolians in the DC area."
+    },
+    "houston": {
+      "title": "Houston",
+      "description": "Mongolians in Houston."
+    },
+    "boston": {
+      "title": "Boston",
+      "description": "Mongolians in Boston."
+    },
+    "salt-lake-city": {
+      "title": "Salt Lake City",
+      "description": "Mongolians in Salt Lake City."
+    },
+    "seoul": {
+      "title": "Seoul",
+      "description": "Mongolians in Korea."
+    },
+    "prague": {
+      "title": "Prague",
+      "description": "Mongolians in Czechia."
+    },
+    "london": {
+      "title": "London",
+      "description": "Mongolians in the UK."
+    },
+    "sydney": {
+      "title": "Sydney",
+      "description": "Mongolians in Australia."
+    },
+    "jobs": {
+      "title": "Jobs",
+      "description": "Work, visas, and career talk — not legal advice."
+    },
+    "food": {
+      "title": "Food",
+      "description": "Buuz, suutei tsai, groceries, restaurants."
+    },
+    "students": {
+      "title": "Students",
+      "description": "School, housing, and first years abroad."
+    },
+    "housing": {
+      "title": "Housing",
+      "description": "Rent, roommates, and moving."
+    }
   },
   "common": {
     "loading": "Loading…",
@@ -22,12 +132,16 @@
   },
   "login": {
     "title": "Sign in",
-    "createAccount": "Create account"
+    "createAccount": "Create account",
+    "forgotPassword": "Forgot password? Email us"
   },
   "register": {
     "title": "Create account",
     "subtitle": "Must be 18+. Default location starts in the Los Angeles metro.",
-    "communitySubtitle": "Must be 18+. Create a profile to ask questions, reply, and start a city community.",
+    "communitySubtitle": "Must be 18+. Sign up to post, reply, and start a city group.",
+    "agreeBefore": "I am 18 or older and agree to the",
+    "agreeAfter": ".",
+    "mustAgree": "Please agree to the Terms and Privacy Policy.",
     "nameRule": "Display name can only contain letters and numbers.",
     "passwordHint": "Password (10+ chars)",
     "displayName": "Display name",
@@ -195,10 +309,10 @@
     "news": "News",
     "explore": "Explore",
     "dating": "Dating",
-    "homeIntro": "Latest conversations from Mongolian communities. Anyone can read. Sign up to post.",
+    "homeIntro": "Uchral is Reddit for Mongolians — city groups, questions, news, and everyday talk. Anyone can read. Sign up to post.",
     "popularIntro": "Threads people are voting up right now.",
     "newsIntro": "News the community is sharing and discussing.",
-    "exploreIntro": "Topics and city groups. Start one for your city — Chicago, UB, Calgary, anywhere.",
+    "exploreIntro": "Topics and city groups. Open one for your city if it is missing.",
     "startCommunity": "+ Start a Community",
     "startCommunityIntro": "Make a space for a city or topic. People can read without an account; only members can post.",
     "communityTitle": "Community name",
@@ -213,6 +327,7 @@
     "postBody": "Text (optional)",
     "publish": "Post",
     "empty": "Nothing here yet. Be the first to post.",
+    "emptyTitle": "This space is waiting for you",
     "loadFail": "Could not load the community.",
     "saveFail": "Could not save.",
     "upvote": "Upvote",

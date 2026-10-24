@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import * as forum from "../forum/api";
+import { communityTitle } from "../forum/labels";
 import type { Community } from "../forum/types";
 
 export default function SubmitPage() {
@@ -49,7 +50,7 @@ export default function SubmitPage() {
           <select value={slug} onChange={(e) => setSlug(e.target.value)}>
             {communities.map((c) => (
               <option key={c.slug} value={c.slug}>
-                c/{c.slug} — {c.title}
+                c/{c.slug} — {communityTitle(t, c.slug, c.title)}
               </option>
             ))}
           </select>
