@@ -2,6 +2,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import LanguageSwitcher from "./LanguageSwitcher";
+import InstallPrompt from "./InstallPrompt";
 
 export default function AppShell() {
   const { loggedIn, logout } = useAuth();
@@ -30,6 +31,7 @@ export default function AppShell() {
       <main className="app-main">
         <Outlet />
       </main>
+      <InstallPrompt />
     </div>
   );
 }

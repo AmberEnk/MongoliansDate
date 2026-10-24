@@ -186,6 +186,14 @@
     "visualAlt9": "Ulaanbaatar seen from a high viewpoint",
     "siteFooter": "Uchral — local prototype. Not a live dating service."
   },
+  "pwa": {
+    "installTitle": "Add Uchral to your phone",
+    "installBody": "Install it on your home screen. No App Store needed — it opens like a regular app.",
+    "install": "Install",
+    "dismiss": "Not now",
+    "iosTitle": "Add Uchral to your home screen",
+    "iosBody": "On iPhone: tap Share, then Add to Home Screen."
+  },
   "adminWaitlist": {
     "title": "Waitlist admin"
   },
