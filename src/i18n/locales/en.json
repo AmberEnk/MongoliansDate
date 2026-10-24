@@ -385,10 +385,24 @@
     "installTitle": "Add Uchral to your phone",
     "installBody": "Install it on your home screen. No App Store needed — it opens like a regular app.",
     "alwaysBody": "Not in the App Store. Add Uchral to your home screen so it opens like an app: browser menu → Add to Home screen.",
+    "bar": "Not in the App Store — add Uchral to your home screen.",
+    "how": "How",
     "install": "Add to home screen",
+    "gotIt": "Got it",
     "dismiss": "Not now",
     "iosTitle": "Add Uchral to your home screen",
-    "iosBody": "Not in the App Store. On iPhone: tap Share, then Add to Home Screen."
+    "iosBody": "Not in the App Store. On iPhone: tap Share, then Add to Home Screen.",
+    "modalTitle": "Add Uchral like an app",
+    "modalLede": "There is no App Store listing. These steps put it on your home screen so it opens full-screen.",
+    "iosStep1": "Tap the Share button (the square with an arrow) in Safari.",
+    "iosStep2": "Scroll the list and tap Add to Home Screen.",
+    "iosStep3": "Tap Add. Uchral will sit next to your other apps.",
+    "androidStep1": "Tap the three dots in the top-right of the browser.",
+    "androidStep2": "Tap Add to Home screen or Install app.",
+    "androidStep3": "Tap Add. Then open it from your home screen.",
+    "otherStep1": "Open the browser menu (three dots or the install icon in the address bar).",
+    "otherStep2": "Choose Install or Add to Home screen.",
+    "otherStep3": "Open Uchral from your home screen or app list."
   },
   "adminWaitlist": {
     "title": "Early supporters"
