@@ -41,6 +41,9 @@ export default function AppShell() {
                 {tab.label}
               </NavLink>
             ))}
+            <NavLink to="/communities/new" className="forum-tabs__create">
+              {t("forum.startCommunity")}
+            </NavLink>
           </nav>
           <div className="forum-topbar__actions">
             <NavLink to="/communities/new" className="btn secondary start-community-btn">
