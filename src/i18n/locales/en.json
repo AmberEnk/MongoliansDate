@@ -363,6 +363,7 @@
     "replies": "Replies",
     "yourReply": "Your reply",
     "reply": "Reply",
+    "replyTo": "Reply to {{name}}",
     "loginHint": "Sign in to post, comment, vote, or share a dating listing.",
     "postCount": "{{count}} posts",
     "mine": "Mine",

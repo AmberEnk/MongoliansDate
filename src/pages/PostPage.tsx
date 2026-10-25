@@ -1,10 +1,27 @@
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import VoteButtons from "../components/VoteButtons";
 import * as forum from "../forum/api";
 import type { ForumComment, ForumPost } from "../forum/types";
+
+function nestComments(flat: ForumComment[]): ForumComment[] {
+  const byId = new Map<string, ForumComment>();
+  for (const c of flat) {
+    byId.set(c.id, { ...c, replies: [] });
+  }
+  const roots: ForumComment[] = [];
+  for (const c of flat) {
+    const node = byId.get(c.id)!;
+    if (c.parentId && byId.has(c.parentId)) {
+      byId.get(c.parentId)!.replies!.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+  return roots;
+}
 
 export default function PostPage() {
   const { id = "" } = useParams();
@@ -22,6 +39,8 @@ export default function PostPage() {
   const [saving, setSaving] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentBody, setEditCommentBody] = useState("");
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyBody, setReplyBody] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -37,6 +56,7 @@ export default function PostPage() {
     void load();
   }, [load]);
 
+  const tree = useMemo(() => nestComments(comments), [comments]);
   const canEditPost = !!post?.canEdit;
   const canDeletePost = !!(post?.canDelete || isSuperAdmin);
 
@@ -50,6 +70,24 @@ export default function PostPage() {
     try {
       await forum.createComment(id, body);
       setBody("");
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("forum.saveFail"));
+    }
+  }
+
+  async function onReply(e: FormEvent) {
+    e.preventDefault();
+    if (!loggedIn) {
+      nav("/login");
+      return;
+    }
+    if (!replyingTo || !replyBody.trim()) return;
+    setError(null);
+    try {
+      await forum.createComment(id, replyBody.trim(), replyingTo);
+      setReplyBody("");
+      setReplyingTo(null);
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("forum.saveFail"));
@@ -95,6 +133,7 @@ export default function PostPage() {
   function startEditComment(c: ForumComment) {
     setEditingCommentId(c.id);
     setEditCommentBody(c.body);
+    setReplyingTo(null);
     setError(null);
   }
 
@@ -124,6 +163,105 @@ export default function PostPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : t("forum.saveFail"));
     }
+  }
+
+  function renderComment(c: ForumComment, depth: number) {
+    const canEditComment = !!c.canEdit;
+    const canDeleteComment = !!(c.canDelete || isSuperAdmin);
+    const nestedDepth = Math.min(depth, 4);
+
+    return (
+      <li key={c.id} className={`card comment-card comment-card--depth-${nestedDepth}`}>
+        <div className="comment-card__row">
+          <VoteButtons
+            commentId={c.id}
+            score={c.score ?? 0}
+            myVote={c.myVote ?? 0}
+            compact
+            onVoted={() => void load()}
+          />
+          <div className="comment-card__main">
+            <p className="post-card__meta">{c.authorName}</p>
+            {editingCommentId === c.id ? (
+              <form className="composer edit-inline" onSubmit={(e) => void onSaveComment(e)}>
+                <label>
+                  {t("forum.yourReply")}
+                  <textarea
+                    value={editCommentBody}
+                    onChange={(e) => setEditCommentBody(e.target.value)}
+                    required
+                    rows={3}
+                  />
+                </label>
+                <div className="edit-actions">
+                  <button className="btn" type="submit" disabled={saving}>
+                    {t("forum.saveEdit")}
+                  </button>
+                  <button
+                    className="btn secondary"
+                    type="button"
+                    disabled={saving}
+                    onClick={() => setEditingCommentId(null)}
+                  >
+                    {t("common.cancel")}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <p className="comment-card__body">{c.body}</p>
+                <p className="edit-actions">
+                  {loggedIn ? (
+                    <button
+                      type="button"
+                      className="linkish"
+                      onClick={() => {
+                        setReplyingTo(c.id);
+                        setReplyBody("");
+                        setEditingCommentId(null);
+                      }}
+                    >
+                      {t("forum.reply")}
+                    </button>
+                  ) : (
+                    <Link to="/login">{t("forum.reply")}</Link>
+                  )}
+                  {canEditComment ? (
+                    <button type="button" className="linkish" onClick={() => startEditComment(c)}>
+                      {t("forum.editComment")}
+                    </button>
+                  ) : null}
+                  {canDeleteComment ? (
+                    <button type="button" className="linkish" onClick={() => void onDeleteComment(c.id)}>
+                      {t("forum.deleteComment")}
+                    </button>
+                  ) : null}
+                </p>
+                {replyingTo === c.id ? (
+                  <form className="composer edit-inline" onSubmit={(e) => void onReply(e)}>
+                    <label>
+                      {t("forum.replyTo", { name: c.authorName })}
+                      <textarea value={replyBody} onChange={(e) => setReplyBody(e.target.value)} required rows={3} />
+                    </label>
+                    <div className="edit-actions">
+                      <button className="btn" type="submit">
+                        {t("forum.reply")}
+                      </button>
+                      <button className="btn secondary" type="button" onClick={() => setReplyingTo(null)}>
+                        {t("common.cancel")}
+                      </button>
+                    </div>
+                  </form>
+                ) : null}
+              </>
+            )}
+          </div>
+        </div>
+        {c.replies && c.replies.length ? (
+          <ul className="comment-list comment-list--nested">{c.replies.map((child) => renderComment(child, depth + 1))}</ul>
+        ) : null}
+      </li>
+    );
   }
 
   if (!post && !error) return <p className="forum-page muted">{t("common.loading")}</p>;
@@ -185,61 +323,7 @@ export default function PostPage() {
       ) : null}
       {error ? <p className="err">{error}</p> : null}
       <h2 className="forum-section-title">{t("forum.replies")}</h2>
-      <ul className="comment-list">
-        {comments.map((c) => {
-          const canEditComment = !!c.canEdit;
-          const canDeleteComment = !!(c.canDelete || isSuperAdmin);
-          return (
-            <li key={c.id} className="card comment-card">
-              <p className="post-card__meta">{c.authorName}</p>
-              {editingCommentId === c.id ? (
-                <form className="composer edit-inline" onSubmit={(e) => void onSaveComment(e)}>
-                  <label>
-                    {t("forum.yourReply")}
-                    <textarea
-                      value={editCommentBody}
-                      onChange={(e) => setEditCommentBody(e.target.value)}
-                      required
-                      rows={3}
-                    />
-                  </label>
-                  <div className="edit-actions">
-                    <button className="btn" type="submit" disabled={saving}>
-                      {t("forum.saveEdit")}
-                    </button>
-                    <button
-                      className="btn secondary"
-                      type="button"
-                      disabled={saving}
-                      onClick={() => setEditingCommentId(null)}
-                    >
-                      {t("common.cancel")}
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <>
-                  <p className="comment-card__body">{c.body}</p>
-                  {canEditComment || canDeleteComment ? (
-                    <p className="edit-actions">
-                      {canEditComment ? (
-                        <button type="button" className="linkish" onClick={() => startEditComment(c)}>
-                          {t("forum.editComment")}
-                        </button>
-                      ) : null}
-                      {canDeleteComment ? (
-                        <button type="button" className="linkish" onClick={() => void onDeleteComment(c.id)}>
-                          {t("forum.deleteComment")}
-                        </button>
-                      ) : null}
-                    </p>
-                  ) : null}
-                </>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      <ul className="comment-list">{tree.map((c) => renderComment(c, 0))}</ul>
       {loggedIn ? (
         <form className="card composer" onSubmit={(e) => void onComment(e)}>
           <label>
