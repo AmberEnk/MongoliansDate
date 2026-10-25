@@ -21,7 +21,12 @@ export default function AppShell() {
     { to: "/news", label: t("forum.news") },
     { to: "/explore", label: t("forum.explore") },
     { to: "/dating", label: t("forum.dating") },
-    ...(loggedIn ? [{ to: "/me", label: t("forum.mine"), end: false }] : []),
+    ...(loggedIn
+      ? [
+          { to: "/messages", label: t("chat.inboxTitle"), end: false },
+          { to: "/me", label: t("forum.mine"), end: false },
+        ]
+      : []),
   ];
 
   return (

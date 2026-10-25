@@ -1,4 +1,13 @@
-import type { Community, DatingListing, ForumComment, ForumPost, ForumUser } from "./types";
+import type {
+  Community,
+  DatingListing,
+  DmMessage,
+  DmThread,
+  DmThreadSummary,
+  ForumComment,
+  ForumPost,
+  ForumUser,
+} from "./types";
 
 const TOKEN_KEY = "uchral.forumToken";
 
@@ -155,6 +164,22 @@ export async function vote(postId: string, value: 1 | -1) {
 
 export async function saveDating(input: { city: string; age: number; intro: string; contact: string }) {
   return postJson({ action: "createDating", ...input });
+}
+
+export async function fetchDmThreads() {
+  return getJson<{ threads: DmThreadSummary[] }>("dms");
+}
+
+export async function fetchDm(threadId: string) {
+  return getJson<{ thread: DmThread; messages: DmMessage[] }>("dm", { id: threadId });
+}
+
+export async function startDm(input: { listingId?: string; userId?: string }) {
+  return postJson<{ threadId: string }>({ action: "startDm", ...input });
+}
+
+export async function sendDm(threadId: string, body: string) {
+  return postJson<{ message: DmMessage }>({ action: "sendDm", threadId, body });
 }
 
 export async function report(input: { reason: string; postId?: string }) {

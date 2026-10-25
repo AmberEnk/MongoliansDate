@@ -132,7 +132,14 @@
   },
   "chat": {
     "backDiscover": "← ᠣᠯᠵᠤ ᠦᠵᠡᠬᠦ",
+    "backInbox": "← Messages",
     "title": "ᠴᠠᠲ",
+    "inboxTitle": "Messages",
+    "inboxIntro": "Dating DMs",
+    "inboxEmpty": "No messages yet",
+    "noMessagesYet": "Say hello",
+    "threadHint": "Private chat",
+    "you": "You",
     "placeholder": "ᠮᠧᠰᠰᠧᠵ",
     "send": "ᠢᠯᠡᠭᠡᠬᠦ",
     "loadFail": "ᠮᠧᠰᠰᠧᠵ ᠠᠴᠢᠶᠠᠯᠠᠬᠤ ᠳᠤ ᠠᠯᠳᠠᠭ᠎ᠠ",
@@ -327,6 +334,8 @@
     "guestNote": "ᠵᠠᠷ ᠢ ᠤᠩᠰᠢᠵᠤ ᠪᠣᠯᠤᠨ᠎ᠠ ᠃ ᠪᠦᠷᠢᠳᠬᠡᠯ ᠢᠶᠡᠷ ᠪᠢᠴᠢᠨ᠎ᠡ ᠃",
     "contactLocked": "ᠨᠡᠪᠲᠡᠷᠡᠵᠦ ᠦᠵᠡ",
     "noContact": "ᠬᠣᠯᠪᠣᠭ᠎ᠠ ᠦᠭᠡᠢ",
+    "message": "Message",
+    "yourListing": "Your listing",
     "empty": "ᠵᠠᠷ ᠦᠭᠡᠢ"
   },
   "pwa": {
