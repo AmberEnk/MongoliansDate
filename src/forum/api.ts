@@ -116,12 +116,37 @@ export async function createCommunity(input: { title: string; slug?: string; des
   return postJson<{ community: Community }>({ action: "createCommunity", ...input });
 }
 
+export async function editCommunity(input: { slug: string; title: string; description: string }) {
+  return postJson<{ ok: boolean; community: Community }>({ action: "editCommunity", ...input });
+}
+
+export async function deleteCommunity(slug: string, adminToken?: string) {
+  const auth = adminToken || getToken();
+  const r = await fetch("/api/forum", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(auth ? { Authorization: `Bearer ${auth}` } : {}),
+    },
+    body: JSON.stringify({ action: "deleteCommunity", slug }),
+  });
+  if (!r.ok) throw new Error(await readError(r, "Could not delete the community."));
+}
+
 export async function createPost(input: { communitySlug: string; title: string; body: string }) {
-  return postJson<{ id: string }>({ action: "createPost", ...input });
+  return postJson<{ id: string; canEdit?: boolean; canDelete?: boolean }>({ action: "createPost", ...input });
+}
+
+export async function editPost(input: { postId: string; title: string; body: string }) {
+  return postJson<{ ok: boolean; canEdit?: boolean; canDelete?: boolean }>({ action: "editPost", ...input });
 }
 
 export async function createComment(postId: string, body: string) {
   return postJson({ action: "createComment", postId, body });
+}
+
+export async function editComment(commentId: string, body: string) {
+  return postJson<{ ok: boolean }>({ action: "editComment", commentId, body });
 }
 
 export async function vote(postId: string, value: 1 | -1) {
@@ -149,6 +174,34 @@ export async function banUser(token: string, userId: string) {
     body: JSON.stringify({ action: "banUser", userId }),
   });
   if (!r.ok) throw new Error(await readError(r, "Could not close the account."));
+}
+
+/** Super admin (or waitlist admin token) — remove a post and its comments. */
+export async function deletePost(postId: string, adminToken?: string) {
+  const auth = adminToken || getToken();
+  const r = await fetch("/api/forum", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(auth ? { Authorization: `Bearer ${auth}` } : {}),
+    },
+    body: JSON.stringify({ action: "deletePost", postId }),
+  });
+  if (!r.ok) throw new Error(await readError(r, "Could not delete the post."));
+}
+
+/** Super admin (or waitlist admin token) — remove one comment. */
+export async function deleteComment(commentId: string, adminToken?: string) {
+  const auth = adminToken || getToken();
+  const r = await fetch("/api/forum", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(auth ? { Authorization: `Bearer ${auth}` } : {}),
+    },
+    body: JSON.stringify({ action: "deleteComment", commentId }),
+  });
+  if (!r.ok) throw new Error(await readError(r, "Could not delete the comment."));
 }
 
 export type ModerationReport = {

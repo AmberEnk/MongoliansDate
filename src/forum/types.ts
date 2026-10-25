@@ -2,6 +2,7 @@ export type ForumUser = {
   id: string;
   email: string;
   displayName: string;
+  isSuperAdmin?: boolean;
 };
 
 export type Community = {
@@ -10,6 +11,10 @@ export type Community = {
   description: string;
   kind: string;
   postCount?: number;
+  createdAt?: string | null;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  isUserCreated?: boolean;
 };
 
 export type ForumPost = {
@@ -20,8 +25,11 @@ export type ForumPost = {
   communitySlug: string;
   communityTitle: string;
   authorName: string;
+  authorId?: string;
   score: number;
   commentCount: number;
+  canEdit?: boolean;
+  canDelete?: boolean;
 };
 
 export type ForumComment = {
@@ -29,6 +37,9 @@ export type ForumComment = {
   body: string;
   createdAt: string;
   authorName: string;
+  authorId?: string;
+  canEdit?: boolean;
+  canDelete?: boolean;
 };
 
 export type DatingListing = {

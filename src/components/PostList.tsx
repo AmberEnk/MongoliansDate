@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import BrandLogo from "./BrandLogo";
 import VoteButtons from "./VoteButtons";
+import * as forum from "../forum/api";
 import type { ForumPost } from "../forum/types";
 
 function timeAgo(iso: string, locale: string): string {
@@ -21,12 +22,30 @@ function timeAgo(iso: string, locale: string): string {
 export default function PostList({
   posts,
   onVoted,
+  onChanged,
 }: {
   posts: ForumPost[];
   onVoted?: () => void;
+  onChanged?: () => void;
 }) {
   const { t, i18n } = useTranslation();
-  const { loggedIn } = useAuth();
+  const { loggedIn, user } = useAuth();
+  const isSuperAdmin = !!user?.isSuperAdmin;
+
+  async function onDeletePost(postId: string) {
+    if (!window.confirm(t("forum.deletePostConfirm"))) return;
+    try {
+      await forum.deletePost(postId);
+      onChanged?.();
+      onVoted?.();
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : t("forum.saveFail"));
+    }
+  }
+
+  function canRemove(p: ForumPost) {
+    return !!(p.canDelete || isSuperAdmin);
+  }
 
   if (!posts.length) {
     return (
@@ -68,6 +87,14 @@ export default function PostList({
               <Link to={`/p/${p.id}`}>{t("forum.commentsCount", { count: p.commentCount })}</Link>
               {" · "}
               <Link to={`/help?post=${p.id}`}>{t("help.report")}</Link>
+              {canRemove(p) ? (
+                <>
+                  {" · "}
+                  <button type="button" className="linkish" onClick={() => void onDeletePost(p.id)}>
+                    {t("forum.deletePost")}
+                  </button>
+                </>
+              ) : null}
             </p>
           </div>
         </li>
