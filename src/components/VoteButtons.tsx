@@ -25,15 +25,16 @@ function ThumbDown() {
   );
 }
 
-export default function VoteButtons({
-  postId,
-  score,
-  onVoted,
-}: {
-  postId: string;
+type Props = {
+  postId?: string;
+  commentId?: string;
   score: number;
+  myVote?: number;
+  compact?: boolean;
   onVoted?: () => void;
-}) {
+};
+
+export default function VoteButtons({ postId, commentId, score, myVote = 0, compact = false, onVoted }: Props) {
   const { t } = useTranslation();
   const { loggedIn } = useAuth();
   const nav = useNavigate();
@@ -44,7 +45,9 @@ export default function VoteButtons({
       return;
     }
     try {
-      await forum.vote(postId, value);
+      if (commentId) await forum.voteComment(commentId, value);
+      else if (postId) await forum.vote(postId, value);
+      else return;
       onVoted?.();
     } catch {
       /* ignore */
@@ -52,12 +55,24 @@ export default function VoteButtons({
   }
 
   return (
-    <div className="vote-col">
-      <button type="button" className="vote-btn vote-btn--like" aria-label={t("forum.like")} onClick={() => void onVote(1)}>
+    <div className={compact ? "vote-col vote-col--compact" : "vote-col"}>
+      <button
+        type="button"
+        className={`vote-btn vote-btn--like${myVote === 1 ? " is-active" : ""}`}
+        aria-label={t("forum.like")}
+        aria-pressed={myVote === 1}
+        onClick={() => void onVote(1)}
+      >
         <ThumbUp />
       </button>
       <span className="vote-score">{score}</span>
-      <button type="button" className="vote-btn vote-btn--dislike" aria-label={t("forum.dislike")} onClick={() => void onVote(-1)}>
+      <button
+        type="button"
+        className={`vote-btn vote-btn--dislike${myVote === -1 ? " is-active" : ""}`}
+        aria-label={t("forum.dislike")}
+        aria-pressed={myVote === -1}
+        onClick={() => void onVote(-1)}
+      >
         <ThumbDown />
       </button>
     </div>

@@ -550,6 +550,15 @@ async function buildSchema() {
   await dbQuery(`CREATE INDEX IF NOT EXISTS forum_rate_bucket_time ON forum_rate (bucket, created_at)`);
   await dbQuery(`ALTER TABLE forum_users ADD COLUMN IF NOT EXISTS banned_at TIMESTAMPTZ`);
   await dbQuery(`ALTER TABLE forum_users ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN NOT NULL DEFAULT FALSE`);
+  await dbQuery(`ALTER TABLE forum_comments ADD COLUMN IF NOT EXISTS parent_id BIGINT REFERENCES forum_comments(id) ON DELETE CASCADE`);
+  await dbQuery(`
+    CREATE TABLE IF NOT EXISTS forum_comment_votes (
+      user_id BIGINT NOT NULL REFERENCES forum_users(id) ON DELETE CASCADE,
+      comment_id BIGINT NOT NULL REFERENCES forum_comments(id) ON DELETE CASCADE,
+      value INTEGER NOT NULL CHECK (value IN (-1, 1)),
+      PRIMARY KEY (user_id, comment_id)
+    )
+  `);
   await dbQuery(`
     CREATE TABLE IF NOT EXISTS forum_dm_threads (
       id BIGSERIAL PRIMARY KEY,
@@ -1022,11 +1031,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const id = q(req, "id");
         const { rows } = await dbQuery(`${POST_LIST_SQL} WHERE p.id = $1`, [id]);
         if (!rows[0]) return res.status(404).json({ error: "Post not found." });
+        const commentParams: unknown[] = [id];
+        let myVoteSelect = `NULL::int AS my_vote`;
+        if (viewer?.id != null) {
+          commentParams.push(viewer.id);
+          myVoteSelect = `(SELECT v.value FROM forum_comment_votes v WHERE v.comment_id = cm.id AND v.user_id = $2) AS my_vote`;
+        }
         const { rows: comments } = await dbQuery(
-          `SELECT cm.id, cm.body, cm.created_at, cm.author_id, u.display_name AS author_name
+          `SELECT cm.id, cm.body, cm.created_at, cm.author_id, cm.parent_id,
+                  u.display_name AS author_name,
+                  COALESCE((SELECT SUM(v.value) FROM forum_comment_votes v WHERE v.comment_id = cm.id), 0)::int AS score,
+                  ${myVoteSelect}
            FROM forum_comments cm JOIN forum_users u ON u.id = cm.author_id
-           WHERE cm.post_id = $1 AND u.banned_at IS NULL ORDER BY cm.created_at ASC`,
-          [id]
+           WHERE cm.post_id = $1 AND u.banned_at IS NULL
+           ORDER BY cm.created_at ASC`,
+          commentParams
         );
         return res.status(200).json({
           post: mapPost(rows[0], viewer?.id),
@@ -1039,6 +1058,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               createdAt: c.created_at,
               authorName: c.author_name,
               authorId,
+              parentId: c.parent_id ? String(c.parent_id) : null,
+              score: Number(c.score) || 0,
+              myVote: c.my_vote == null ? 0 : Number(c.my_vote),
               canEdit: isOwner,
               canDelete: isOwner,
             };
@@ -1504,15 +1526,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(429).json({ error: "Too many tries. Wait a bit." });
       }
       const postId = str(body.postId, 20);
+      const parentId = str(body.parentId, 20);
       const commentBody = str(body.body, 2000);
       if (commentBody.length < 1) return res.status(400).json({ error: "Write a comment." });
       const { rows: post } = await dbQuery(`SELECT id FROM forum_posts WHERE id = $1`, [postId]);
       if (!post[0]) return res.status(404).json({ error: "Post not found." });
+      let parent: string | null = null;
+      if (parentId) {
+        const { rows: parents } = await dbQuery(
+          `SELECT id, post_id FROM forum_comments WHERE id = $1`,
+          [parentId]
+        );
+        if (!parents[0] || String(parents[0].post_id) !== String(postId)) {
+          return res.status(400).json({ error: "Reply target not found." });
+        }
+        parent = String(parents[0].id);
+      }
       const { rows: created } = await dbQuery(
-        `INSERT INTO forum_comments (post_id, author_id, body) VALUES ($1, $2, $3) RETURNING id`,
-        [postId, user.id, commentBody]
+        `INSERT INTO forum_comments (post_id, author_id, body, parent_id) VALUES ($1, $2, $3, $4) RETURNING id`,
+        [postId, user.id, commentBody, parent]
       );
-      return res.status(200).json({ ok: true, id: String(created[0].id), canEdit: true, canDelete: true });
+      return res.status(200).json({
+        ok: true,
+        id: String(created[0].id),
+        parentId: parent,
+        canEdit: true,
+        canDelete: true,
+      });
     }
 
     if (postAction === "editComment") {
@@ -1539,6 +1579,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         `INSERT INTO forum_votes (user_id, post_id, value) VALUES ($1, $2, $3)
          ON CONFLICT (user_id, post_id) DO UPDATE SET value = EXCLUDED.value`,
         [user.id, postId, value]
+      );
+      return res.status(200).json({ ok: true });
+    }
+
+    if (postAction === "voteComment") {
+      const commentId = str(body.commentId, 20);
+      const value = Number(body.value) === -1 ? -1 : 1;
+      if (!commentId) return res.status(400).json({ error: "Missing comment." });
+      const { rows: comment } = await dbQuery(`SELECT id FROM forum_comments WHERE id = $1`, [commentId]);
+      if (!comment[0]) return res.status(404).json({ error: "Comment not found." });
+      await dbQuery(
+        `INSERT INTO forum_comment_votes (user_id, comment_id, value) VALUES ($1, $2, $3)
+         ON CONFLICT (user_id, comment_id) DO UPDATE SET value = EXCLUDED.value`,
+        [user.id, commentId, value]
       );
       return res.status(200).json({ ok: true });
     }

@@ -1667,6 +1667,54 @@ a.forum-user.is-active {
   border-left-color: var(--color-love);
 }
 
+.vote-btn.is-active.vote-btn--like {
+  color: var(--color-sky);
+}
+
+.vote-btn.is-active.vote-btn--dislike {
+  color: var(--color-love);
+}
+
+.vote-col--compact {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: auto;
+}
+
+.vote-col--compact .vote-score {
+  min-width: 1.4rem;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.comment-card__row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.comment-card__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.comment-list--nested {
+  margin: 0.75rem 0 0;
+  padding-left: 0.85rem;
+  border-left: 2px solid rgba(15, 76, 129, 0.18);
+  display: grid;
+  gap: 0.65rem;
+}
+
+.comment-card--depth-1,
+.comment-card--depth-2,
+.comment-card--depth-3,
+.comment-card--depth-4 {
+  box-shadow: none;
+}
+
 .vote-col {
   display: flex;
   flex-direction: column;

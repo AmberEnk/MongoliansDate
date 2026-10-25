@@ -38,8 +38,12 @@ export type ForumComment = {
   createdAt: string;
   authorName: string;
   authorId?: string;
+  parentId?: string | null;
+  score?: number;
+  myVote?: number;
   canEdit?: boolean;
   canDelete?: boolean;
+  replies?: ForumComment[];
 };
 
 export type DatingListing = {

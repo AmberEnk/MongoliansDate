@@ -150,8 +150,8 @@ export async function editPost(input: { postId: string; title: string; body: str
   return postJson<{ ok: boolean; canEdit?: boolean; canDelete?: boolean }>({ action: "editPost", ...input });
 }
 
-export async function createComment(postId: string, body: string) {
-  return postJson({ action: "createComment", postId, body });
+export async function createComment(postId: string, body: string, parentId?: string) {
+  return postJson({ action: "createComment", postId, body, ...(parentId ? { parentId } : {}) });
 }
 
 export async function editComment(commentId: string, body: string) {
@@ -160,6 +160,10 @@ export async function editComment(commentId: string, body: string) {
 
 export async function vote(postId: string, value: 1 | -1) {
   return postJson({ action: "vote", postId, value });
+}
+
+export async function voteComment(commentId: string, value: 1 | -1) {
+  return postJson({ action: "voteComment", commentId, value });
 }
 
 export async function saveDating(input: { city: string; age: number; intro: string; contact: string }) {
