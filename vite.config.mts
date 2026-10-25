@@ -16,10 +16,14 @@ function loadLocalDbEnv() {
   }
 }
 
-function forumDevApi(): Plugin {
+function forumDevApi(apiOrigin: string): Plugin {
   return {
     name: "forum-dev-api",
     configureServer(server) {
+      if (apiOrigin) {
+        // Prefer proxying forum to the remote API when VITE_DEV_API_ORIGIN is set.
+        return;
+      }
       loadLocalDbEnv();
       server.middlewares.use(async (req: IncomingMessage, res: ServerResponse, next) => {
         const url = req.url || "";
@@ -88,12 +92,12 @@ function forumDevApi(): Plugin {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const apiOrigin = (env.VITE_DEV_API_ORIGIN || "").replace(/\/$/, "");
+  const apiOrigin = (process.env.VITE_DEV_API_ORIGIN || env.VITE_DEV_API_ORIGIN || "").replace(/\/$/, "");
 
   return {
     plugins: [
       react(),
-      forumDevApi(),
+      forumDevApi(apiOrigin),
       VitePWA({
         registerType: "autoUpdate",
         includeAssets: [
@@ -162,6 +166,7 @@ export default defineConfig(({ mode }) => {
       strictPort: false,
       proxy: apiOrigin
         ? {
+            "/api/forum": { target: apiOrigin, changeOrigin: true },
             "/api/waitlist": { target: apiOrigin, changeOrigin: true },
             "/api/waitlist-admin": { target: apiOrigin, changeOrigin: true },
             "/api/waitlist-export": { target: apiOrigin, changeOrigin: true },

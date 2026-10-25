@@ -275,7 +275,7 @@ export default function PostPage() {
           </p>
           <article className="card post-detail">
             <VoteButtons postId={post.id} score={post.score} onVoted={() => void load()} />
-            <div>
+            <div className="post-detail__body">
               <p className="post-card__meta">
                 {post.authorName} · {new Date(post.createdAt).toLocaleString()}
               </p>
