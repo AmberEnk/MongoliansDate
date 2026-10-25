@@ -550,6 +550,28 @@ async function buildSchema() {
   await dbQuery(`CREATE INDEX IF NOT EXISTS forum_rate_bucket_time ON forum_rate (bucket, created_at)`);
   await dbQuery(`ALTER TABLE forum_users ADD COLUMN IF NOT EXISTS banned_at TIMESTAMPTZ`);
   await dbQuery(`ALTER TABLE forum_users ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN NOT NULL DEFAULT FALSE`);
+  await dbQuery(`
+    CREATE TABLE IF NOT EXISTS forum_dm_threads (
+      id BIGSERIAL PRIMARY KEY,
+      user_lo BIGINT NOT NULL REFERENCES forum_users(id) ON DELETE CASCADE,
+      user_hi BIGINT NOT NULL REFERENCES forum_users(id) ON DELETE CASCADE,
+      listing_id BIGINT REFERENCES dating_listings(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CHECK (user_lo < user_hi),
+      UNIQUE (user_lo, user_hi)
+    )
+  `);
+  await dbQuery(`
+    CREATE TABLE IF NOT EXISTS forum_dm_messages (
+      id BIGSERIAL PRIMARY KEY,
+      thread_id BIGINT NOT NULL REFERENCES forum_dm_threads(id) ON DELETE CASCADE,
+      sender_id BIGINT NOT NULL REFERENCES forum_users(id) ON DELETE CASCADE,
+      body TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await dbQuery(`CREATE INDEX IF NOT EXISTS forum_dm_messages_thread_time ON forum_dm_messages (thread_id, created_at)`);
   const superEmails = superAdminEmails();
   if (superEmails.length) {
     await dbQuery(`UPDATE forum_users SET is_super_admin = TRUE WHERE lower(email) = ANY($1::text[])`, [
@@ -855,6 +877,16 @@ async function canModerateOrOwn(req: VercelRequest, authorId: string | number | 
   return !!(user && String(user.id) === String(authorId));
 }
 
+function dmPair(a: string | number, b: string | number): [string, string] {
+  const x = BigInt(String(a));
+  const y = BigInt(String(b));
+  return x < y ? [String(x), String(y)] : [String(y), String(x)];
+}
+
+function otherUserId(thread: { user_lo: string | number; user_hi: string | number }, me: string | number): string {
+  return String(thread.user_lo) === String(me) ? String(thread.user_hi) : String(thread.user_lo);
+}
+
 const POST_LIST_SQL = `
   SELECT p.id, p.title, p.body, p.created_at, p.author_id,
     c.slug AS community_slug, c.title AS community_title,
@@ -1014,9 +1046,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
       if (action === "dating") {
-        const signedIn = !!(await userFromToken(req));
+        const viewer = await userFromToken(req);
+        const signedIn = !!viewer;
         const { rows } = await dbQuery(
-          `SELECT d.id, d.city, d.age, d.intro, d.contact, d.created_at, u.display_name
+          `SELECT d.id, d.user_id, d.city, d.age, d.intro, d.contact, d.created_at, u.display_name
            FROM dating_listings d JOIN forum_users u ON u.id = d.user_id
            WHERE u.banned_at IS NULL
            ORDER BY d.created_at DESC LIMIT 80`
@@ -1024,13 +1057,90 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({
           listings: rows.map((r: any) => ({
             id: String(r.id),
+            userId: String(r.user_id),
             displayName: r.display_name,
             city: r.city,
             age: r.age,
             intro: r.intro,
             contact: signedIn ? r.contact : "",
             contactHidden: !signedIn,
+            isMine: !!(viewer && String(viewer.id) === String(r.user_id)),
             createdAt: r.created_at,
+          })),
+        });
+      }
+      if (action === "dms") {
+        const user = await userFromToken(req);
+        if (!user) return res.status(401).json({ error: "Sign in to continue." });
+        const { rows } = await dbQuery(
+          `SELECT t.id, t.updated_at, t.listing_id,
+                  CASE WHEN t.user_lo = $1 THEN t.user_hi ELSE t.user_lo END AS other_id,
+                  u.display_name AS other_name,
+                  (
+                    SELECT m.body FROM forum_dm_messages m
+                    WHERE m.thread_id = t.id
+                    ORDER BY m.created_at DESC LIMIT 1
+                  ) AS last_body
+           FROM forum_dm_threads t
+           JOIN forum_users u ON u.id = CASE WHEN t.user_lo = $1 THEN t.user_hi ELSE t.user_lo END
+           WHERE (t.user_lo = $1 OR t.user_hi = $1) AND u.banned_at IS NULL
+           ORDER BY t.updated_at DESC
+           LIMIT 80`,
+          [user.id]
+        );
+        return res.status(200).json({
+          threads: rows.map((r: any) => ({
+            id: String(r.id),
+            otherUserId: String(r.other_id),
+            otherName: r.other_name,
+            listingId: r.listing_id ? String(r.listing_id) : null,
+            lastBody: r.last_body || "",
+            updatedAt: r.updated_at,
+          })),
+        });
+      }
+      if (action === "dm") {
+        const user = await userFromToken(req);
+        if (!user) return res.status(401).json({ error: "Sign in to continue." });
+        const id = q(req, "id");
+        const { rows: threads } = await dbQuery(
+          `SELECT id, user_lo, user_hi, listing_id FROM forum_dm_threads WHERE id = $1`,
+          [id]
+        );
+        const thread = threads[0];
+        if (!thread) return res.status(404).json({ error: "Chat not found." });
+        if (String(thread.user_lo) !== String(user.id) && String(thread.user_hi) !== String(user.id)) {
+          return res.status(403).json({ error: "Not your chat." });
+        }
+        const otherId = otherUserId(thread, user.id);
+        const { rows: others } = await dbQuery(
+          `SELECT id, display_name FROM forum_users WHERE id = $1 AND banned_at IS NULL`,
+          [otherId]
+        );
+        if (!others[0]) return res.status(404).json({ error: "That person is no longer available." });
+        const { rows: messages } = await dbQuery(
+          `SELECT m.id, m.body, m.created_at, m.sender_id, u.display_name AS sender_name
+           FROM forum_dm_messages m
+           JOIN forum_users u ON u.id = m.sender_id
+           WHERE m.thread_id = $1
+           ORDER BY m.created_at ASC
+           LIMIT 200`,
+          [id]
+        );
+        return res.status(200).json({
+          thread: {
+            id: String(thread.id),
+            otherUserId: String(others[0].id),
+            otherName: others[0].display_name,
+            listingId: thread.listing_id ? String(thread.listing_id) : null,
+          },
+          messages: messages.map((m: any) => ({
+            id: String(m.id),
+            body: m.body,
+            createdAt: m.created_at,
+            senderId: String(m.sender_id),
+            senderName: m.sender_name,
+            mine: String(m.sender_id) === String(user.id),
           })),
         });
       }
@@ -1450,6 +1560,100 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         [user.id, city, age, intro, contact]
       );
       return res.status(200).json({ ok: true });
+    }
+
+    if (postAction === "startDm") {
+      if (!(await allowRate(`dm-start:${user.id}`, 20, 1))) {
+        return res.status(429).json({ error: "Too many tries. Wait a bit." });
+      }
+      const listingId = str(body.listingId, 20);
+      let otherId = str(body.userId, 20);
+      let linkedListing: string | null = null;
+      if (listingId) {
+        const { rows } = await dbQuery(
+          `SELECT d.id, d.user_id FROM dating_listings d
+           JOIN forum_users u ON u.id = d.user_id
+           WHERE d.id = $1 AND u.banned_at IS NULL`,
+          [listingId]
+        );
+        if (!rows[0]) return res.status(404).json({ error: "Listing not found." });
+        otherId = String(rows[0].user_id);
+        linkedListing = String(rows[0].id);
+      } else if (otherId) {
+        const { rows } = await dbQuery(
+          `SELECT id FROM forum_users WHERE id = $1 AND banned_at IS NULL`,
+          [otherId]
+        );
+        if (!rows[0]) return res.status(404).json({ error: "User not found." });
+      } else {
+        return res.status(400).json({ error: "Pick someone to message." });
+      }
+      if (String(otherId) === String(user.id)) {
+        return res.status(400).json({ error: "You cannot message yourself." });
+      }
+      const [lo, hi] = dmPair(user.id, otherId);
+      const { rows: existing } = await dbQuery(
+        `SELECT id FROM forum_dm_threads WHERE user_lo = $1 AND user_hi = $2`,
+        [lo, hi]
+      );
+      if (existing[0]) {
+        if (linkedListing) {
+          await dbQuery(
+            `UPDATE forum_dm_threads SET listing_id = COALESCE(listing_id, $2), updated_at = NOW() WHERE id = $1`,
+            [existing[0].id, linkedListing]
+          );
+        }
+        return res.status(200).json({ threadId: String(existing[0].id) });
+      }
+      const { rows: created } = await dbQuery(
+        `INSERT INTO forum_dm_threads (user_lo, user_hi, listing_id)
+         VALUES ($1, $2, $3)
+         RETURNING id`,
+        [lo, hi, linkedListing]
+      );
+      return res.status(200).json({ threadId: String(created[0].id) });
+    }
+
+    if (postAction === "sendDm") {
+      if (!(await allowRate(`dm-send:${user.id}`, 40, 1))) {
+        return res.status(429).json({ error: "Too many tries. Wait a bit." });
+      }
+      const threadId = str(body.threadId, 20);
+      const messageBody = str(body.body, 2000);
+      if (!threadId) return res.status(400).json({ error: "Missing chat." });
+      if (messageBody.length < 1) return res.status(400).json({ error: "Write a message." });
+      const { rows: threads } = await dbQuery(
+        `SELECT id, user_lo, user_hi FROM forum_dm_threads WHERE id = $1`,
+        [threadId]
+      );
+      const thread = threads[0];
+      if (!thread) return res.status(404).json({ error: "Chat not found." });
+      if (String(thread.user_lo) !== String(user.id) && String(thread.user_hi) !== String(user.id)) {
+        return res.status(403).json({ error: "Not your chat." });
+      }
+      const otherId = otherUserId(thread, user.id);
+      const { rows: others } = await dbQuery(
+        `SELECT id FROM forum_users WHERE id = $1 AND banned_at IS NULL`,
+        [otherId]
+      );
+      if (!others[0]) return res.status(403).json({ error: "That person is no longer available." });
+      const { rows: created } = await dbQuery(
+        `INSERT INTO forum_dm_messages (thread_id, sender_id, body)
+         VALUES ($1, $2, $3)
+         RETURNING id, body, created_at, sender_id`,
+        [threadId, user.id, messageBody]
+      );
+      await dbQuery(`UPDATE forum_dm_threads SET updated_at = NOW() WHERE id = $1`, [threadId]);
+      return res.status(200).json({
+        message: {
+          id: String(created[0].id),
+          body: created[0].body,
+          createdAt: created[0].created_at,
+          senderId: String(created[0].sender_id),
+          senderName: user.display_name,
+          mine: true,
+        },
+      });
     }
 
     return res.status(400).json({ error: "Unknown action." });

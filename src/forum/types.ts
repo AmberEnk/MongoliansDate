@@ -44,11 +44,38 @@ export type ForumComment = {
 
 export type DatingListing = {
   id: string;
+  userId: string;
   displayName: string;
   city: string;
   age: number;
   intro: string;
   contact: string;
   contactHidden: boolean;
+  isMine?: boolean;
   createdAt: string;
+};
+
+export type DmThreadSummary = {
+  id: string;
+  otherUserId: string;
+  otherName: string;
+  listingId: string | null;
+  lastBody: string;
+  updatedAt: string;
+};
+
+export type DmMessage = {
+  id: string;
+  body: string;
+  createdAt: string;
+  senderId: string;
+  senderName: string;
+  mine: boolean;
+};
+
+export type DmThread = {
+  id: string;
+  otherUserId: string;
+  otherName: string;
+  listingId: string | null;
 };

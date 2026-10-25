@@ -16,6 +16,8 @@ import DatingPage from "./pages/DatingPage";
 import HelpPage from "./pages/HelpPage";
 import AdminModerationPage from "./pages/AdminModerationPage";
 import MinePage from "./pages/MinePage";
+import MessagesPage from "./pages/MessagesPage";
+import MessageThreadPage from "./pages/MessageThreadPage";
 
 export default function App() {
   return (
@@ -26,6 +28,8 @@ export default function App() {
         <Route path="/news" element={<FeedPage kind="news" />} />
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/dating" element={<DatingPage />} />
+        <Route path="/messages" element={<MessagesPage />} />
+        <Route path="/messages/:id" element={<MessageThreadPage />} />
         <Route path="/communities/new" element={<NewCommunityPage />} />
         <Route path="/c/:slug" element={<CommunityPage />} />
         <Route path="/p/:id" element={<PostPage />} />

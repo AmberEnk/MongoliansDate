@@ -1,5 +1,5 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import BrandLogo from "../components/BrandLogo";
@@ -9,12 +9,14 @@ import type { DatingListing } from "../forum/types";
 export default function DatingPage() {
   const { t } = useTranslation();
   const { loggedIn } = useAuth();
+  const nav = useNavigate();
   const [listings, setListings] = useState<DatingListing[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [city, setCity] = useState("");
   const [age, setAge] = useState("28");
   const [intro, setIntro] = useState("");
   const [contact, setContact] = useState("");
+  const [messagingId, setMessagingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -39,6 +41,23 @@ export default function DatingPage() {
     }
   }
 
+  async function onMessage(listing: DatingListing) {
+    if (!loggedIn) {
+      nav("/login");
+      return;
+    }
+    setMessagingId(listing.id);
+    setError(null);
+    try {
+      const r = await forum.startDm({ listingId: listing.id });
+      nav(`/messages/${r.threadId}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("chat.sendFail"));
+    } finally {
+      setMessagingId(null);
+    }
+  }
+
   return (
     <div className="forum-page">
       <header className="forum-page__head">
@@ -46,9 +65,16 @@ export default function DatingPage() {
           <h1>{t("dating.boardTitle")}</h1>
           <p className="subtle-hint">{t("dating.boardIntro")}</p>
         </div>
-        <Link to="/c/dating" className="btn secondary">
-          {t("dating.openTalk")}
-        </Link>
+        <div className="edit-actions">
+          {loggedIn ? (
+            <Link to="/messages" className="btn secondary">
+              {t("chat.inboxTitle")}
+            </Link>
+          ) : null}
+          <Link to="/c/dating" className="btn secondary">
+            {t("dating.openTalk")}
+          </Link>
+        </div>
       </header>
 
       {loggedIn ? (
@@ -101,6 +127,20 @@ export default function DatingPage() {
             ) : (
               <p className="muted">{t("dating.noContact")}</p>
             )}
+            <p className="edit-actions">
+              {row.isMine ? (
+                <span className="muted">{t("dating.yourListing")}</span>
+              ) : (
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={messagingId === row.id}
+                  onClick={() => void onMessage(row)}
+                >
+                  {messagingId === row.id ? t("common.loading") : t("dating.message")}
+                </button>
+              )}
+            </p>
           </li>
         ))}
       </ul>
