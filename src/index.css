@@ -1693,6 +1693,22 @@ a.forum-user.is-active {
   margin: 0.65rem 0 0;
 }
 
+button.linkish {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+button.linkish:hover {
+  color: var(--color-text);
+}
+
 .edit-inline {
   margin-top: 0.5rem;
 }

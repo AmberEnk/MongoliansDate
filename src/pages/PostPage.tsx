@@ -10,8 +10,9 @@ import type { ForumComment, ForumPost } from "../forum/types";
 export default function PostPage() {
   const { id = "" } = useParams();
   const { t } = useTranslation();
-  const { loggedIn } = useAuth();
+  const { loggedIn, user } = useAuth();
   const nav = useNavigate();
+  const isSuperAdmin = !!user?.isSuperAdmin;
   const [post, setPost] = useState<ForumPost | null>(null);
   const [comments, setComments] = useState<ForumComment[]>([]);
   const [body, setBody] = useState("");
@@ -85,6 +86,29 @@ export default function PostPage() {
     }
   }
 
+  async function onDeletePost() {
+    if (!post) return;
+    if (!window.confirm(t("forum.deletePostConfirm"))) return;
+    setError(null);
+    try {
+      await forum.deletePost(post.id);
+      nav(`/c/${post.communitySlug}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("forum.saveFail"));
+    }
+  }
+
+  async function onDeleteComment(commentId: string) {
+    if (!window.confirm(t("forum.deleteCommentConfirm"))) return;
+    setError(null);
+    try {
+      await forum.deleteComment(commentId);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("forum.saveFail"));
+    }
+  }
+
   if (!post && !error) return <p className="forum-page muted">{t("common.loading")}</p>;
 
   return (
@@ -135,6 +159,11 @@ export default function PostPage() {
                         {t("forum.editPost")}
                       </button>
                     ) : null}
+                    {isSuperAdmin ? (
+                      <button type="button" className="btn secondary" onClick={() => void onDeletePost()}>
+                        {t("forum.deletePost")}
+                      </button>
+                    ) : null}
                     <Link to={`/help?post=${post.id}`}>{t("help.report")}</Link>
                   </p>
                 </>
@@ -148,7 +177,17 @@ export default function PostPage() {
       <ul className="comment-list">
         {comments.map((c) => (
           <li key={c.id} className="card comment-card">
-            <p className="post-card__meta">{c.authorName}</p>
+            <p className="post-card__meta">
+              {c.authorName}
+              {isSuperAdmin ? (
+                <>
+                  {" · "}
+                  <button type="button" className="linkish" onClick={() => void onDeleteComment(c.id)}>
+                    {t("forum.deleteComment")}
+                  </button>
+                </>
+              ) : null}
+            </p>
             <p className="comment-card__body">{c.body}</p>
           </li>
         ))}

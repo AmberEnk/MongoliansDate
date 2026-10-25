@@ -293,7 +293,11 @@
     "editCommunity": "Edit community",
     "saveEdit": "Save",
     "editWindowLeft": "{{minutes}} min",
-    "editCommunitySlugHint": "Name/about only; short URL stays."
+    "editCommunitySlugHint": "Name/about only; short URL stays.",
+    "deletePost": "Delete post",
+    "deleteComment": "Delete",
+    "deletePostConfirm": "Delete this post?",
+    "deleteCommentConfirm": "Delete this comment?"
   },
   "help": {
     "link": "ᠲᠤᠰᠠᠯᠠᠮᠵᠢ",

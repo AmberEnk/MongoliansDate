@@ -369,7 +369,11 @@
     "editCommunity": "Edit community",
     "saveEdit": "Save changes",
     "editWindowLeft": "{{minutes}} min left to edit",
-    "editCommunitySlugHint": "You can fix the name and about text. The short URL (c/…) stays the same."
+    "editCommunitySlugHint": "You can fix the name and about text. The short URL (c/…) stays the same.",
+    "deletePost": "Delete post",
+    "deleteComment": "Delete",
+    "deletePostConfirm": "Delete this post and its replies? This cannot be undone.",
+    "deleteCommentConfirm": "Delete this comment? This cannot be undone."
   },
   "help": {
     "link": "Help / Report",

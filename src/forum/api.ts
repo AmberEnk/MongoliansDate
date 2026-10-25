@@ -159,6 +159,34 @@ export async function banUser(token: string, userId: string) {
   if (!r.ok) throw new Error(await readError(r, "Could not close the account."));
 }
 
+/** Super admin (or waitlist admin token) — remove a post and its comments. */
+export async function deletePost(postId: string, adminToken?: string) {
+  const auth = adminToken || getToken();
+  const r = await fetch("/api/forum", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(auth ? { Authorization: `Bearer ${auth}` } : {}),
+    },
+    body: JSON.stringify({ action: "deletePost", postId }),
+  });
+  if (!r.ok) throw new Error(await readError(r, "Could not delete the post."));
+}
+
+/** Super admin (or waitlist admin token) — remove one comment. */
+export async function deleteComment(commentId: string, adminToken?: string) {
+  const auth = adminToken || getToken();
+  const r = await fetch("/api/forum", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(auth ? { Authorization: `Bearer ${auth}` } : {}),
+    },
+    body: JSON.stringify({ action: "deleteComment", commentId }),
+  });
+  if (!r.ok) throw new Error(await readError(r, "Could not delete the comment."));
+}
+
 export type ModerationReport = {
   id: string;
   reason: string;

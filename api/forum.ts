@@ -1242,6 +1242,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ ok: true });
     }
 
+    if (postAction === "deletePost") {
+      if (!(await canModerate(req))) return res.status(401).json({ error: "Unauthorized." });
+      const postId = str(body.postId, 20);
+      if (!postId) return res.status(400).json({ error: "Missing post." });
+      const { rows } = await dbQuery(`DELETE FROM forum_posts WHERE id = $1 RETURNING id`, [postId]);
+      if (!rows[0]) return res.status(404).json({ error: "Post not found." });
+      return res.status(200).json({ ok: true });
+    }
+
+    if (postAction === "deleteComment") {
+      if (!(await canModerate(req))) return res.status(401).json({ error: "Unauthorized." });
+      const commentId = str(body.commentId, 20);
+      if (!commentId) return res.status(400).json({ error: "Missing comment." });
+      const { rows } = await dbQuery(`DELETE FROM forum_comments WHERE id = $1 RETURNING id`, [commentId]);
+      if (!rows[0]) return res.status(404).json({ error: "Comment not found." });
+      return res.status(200).json({ ok: true });
+    }
+
     const user = await requireUser(req, res);
     if (!user) return;
 

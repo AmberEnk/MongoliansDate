@@ -369,7 +369,11 @@
     "editCommunity": "Бүлэг засах",
     "saveEdit": "Хадгалах",
     "editWindowLeft": "Засахад {{minutes}} мин үлдлээ",
-    "editCommunitySlugHint": "Нэр болон тайлбарыг засна. Богино холбоос (c/…) өөрчлөгдөхгүй."
+    "editCommunitySlugHint": "Нэр болон тайлбарыг засна. Богино холбоос (c/…) өөрчлөгдөхгүй.",
+    "deletePost": "Пост устгах",
+    "deleteComment": "Устгах",
+    "deletePostConfirm": "Энэ пост болон хариултуудыг устгах уу? Буцаах боломжгүй.",
+    "deleteCommentConfirm": "Энэ сэтгэгдлийг устгах уу? Буцаах боломжгүй."
   },
   "help": {
     "link": "Тусламж / Репортлох",

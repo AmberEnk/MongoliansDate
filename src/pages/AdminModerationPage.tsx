@@ -71,6 +71,18 @@ export default function AdminModerationPage() {
     }
   }
 
+  async function removePost(postId: string) {
+    if (!window.confirm("Delete this post and its replies?")) return;
+    setError(null);
+    try {
+      const secret = isSuperAdmin ? forum.getToken() || "" : normalizeBearerSecret(token);
+      await forum.deletePost(postId, secret || undefined);
+      await load(undefined, secret);
+    } catch (er) {
+      setError(er instanceof Error ? er.message : "Could not delete the post.");
+    }
+  }
+
   return (
     <div className="forum-page">
       <h1>Moderation</h1>
@@ -134,11 +146,18 @@ export default function AdminModerationPage() {
                 Account {r.targetName} ({r.targetEmail}) {r.banned ? "— closed" : ""}
               </p>
             ) : null}
-            {r.targetId && !r.banned ? (
-              <button type="button" className="btn secondary" onClick={() => void ban(r.targetId as string)}>
-                Close account
-              </button>
-            ) : null}
+            <p className="edit-actions">
+              {r.postId ? (
+                <button type="button" className="btn secondary" onClick={() => void removePost(r.postId as string)}>
+                  Delete post
+                </button>
+              ) : null}
+              {r.targetId && !r.banned ? (
+                <button type="button" className="btn secondary" onClick={() => void ban(r.targetId as string)}>
+                  Close account
+                </button>
+              ) : null}
+            </p>
           </li>
         ))}
       </ul>
