@@ -11,6 +11,9 @@ export type Community = {
   description: string;
   kind: string;
   postCount?: number;
+  createdAt?: string | null;
+  canEdit?: boolean;
+  editableUntil?: string | null;
 };
 
 export type ForumPost = {
@@ -21,8 +24,11 @@ export type ForumPost = {
   communitySlug: string;
   communityTitle: string;
   authorName: string;
+  authorId?: string;
   score: number;
   commentCount: number;
+  canEdit?: boolean;
+  editableUntil?: string | null;
 };
 
 export type ForumComment = {

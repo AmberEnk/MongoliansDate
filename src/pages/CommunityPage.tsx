@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import PostList from "../components/PostList";
 import * as forum from "../forum/api";
+import { isStillEditable, minutesLeft } from "../forum/editWindow";
 import { communityDescription, communityTitle } from "../forum/labels";
 import type { Community, ForumPost } from "../forum/types";
 
@@ -18,6 +19,11 @@ export default function CommunityPage() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [posting, setPosting] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [tick, setTick] = useState(0);
 
   const load = useCallback(async () => {
     setError(null);
@@ -34,6 +40,15 @@ export default function CommunityPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!community?.editableUntil || !isStillEditable(community.editableUntil)) return;
+    const timer = window.setInterval(() => setTick((n) => n + 1), 15_000);
+    return () => window.clearInterval(timer);
+  }, [community?.editableUntil]);
+
+  const canEdit = !!(community?.canEdit && isStillEditable(community.editableUntil));
+  void tick;
 
   async function onPost(e: FormEvent) {
     e.preventDefault();
@@ -55,6 +70,34 @@ export default function CommunityPage() {
     }
   }
 
+  function startEdit() {
+    if (!community) return;
+    setEditTitle(community.title);
+    setEditDescription(community.description || "");
+    setEditing(true);
+    setError(null);
+  }
+
+  async function onSaveEdit(e: FormEvent) {
+    e.preventDefault();
+    if (!community) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await forum.editCommunity({
+        slug: community.slug,
+        title: editTitle,
+        description: editDescription,
+      });
+      setEditing(false);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("forum.saveFail"));
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div className="forum-page">
       <p className="chat-back">
@@ -64,8 +107,40 @@ export default function CommunityPage() {
         <header className="forum-page__head">
           <div>
             <p className="muted">c/{community.slug}</p>
-            <h1>{communityTitle(t, community.slug, community.title)}</h1>
-            <p className="subtle-hint">{communityDescription(t, community.slug, community.description)}</p>
+            {editing ? (
+              <form className="card composer edit-inline" onSubmit={(e) => void onSaveEdit(e)}>
+                <label>
+                  {t("forum.communityTitle")}
+                  <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} required minLength={2} />
+                </label>
+                <label>
+                  {t("forum.communityAbout")}
+                  <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={3} />
+                </label>
+                <p className="subtle-hint">{t("forum.editCommunitySlugHint")}</p>
+                <div className="edit-actions">
+                  <button className="btn" type="submit" disabled={saving}>
+                    {t("forum.saveEdit")}
+                  </button>
+                  <button className="btn secondary" type="button" disabled={saving} onClick={() => setEditing(false)}>
+                    {t("common.cancel")}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <h1>{communityTitle(t, community.slug, community.title)}</h1>
+                <p className="subtle-hint">{communityDescription(t, community.slug, community.description)}</p>
+                {canEdit ? (
+                  <p className="edit-actions">
+                    <button type="button" className="btn secondary" onClick={startEdit}>
+                      {t("forum.editCommunity")}
+                    </button>
+                    <span className="muted">{t("forum.editWindowLeft", { minutes: minutesLeft(community.editableUntil) })}</span>
+                  </p>
+                ) : null}
+              </>
+            )}
           </div>
         </header>
       ) : null}

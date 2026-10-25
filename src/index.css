@@ -1685,6 +1685,22 @@ a.forum-user.is-active {
   word-break: break-word;
 }
 
+.edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+  margin: 0.65rem 0 0;
+}
+
+.edit-inline {
+  margin-top: 0.5rem;
+}
+
+.edit-inline .edit-actions {
+  margin-top: 0.25rem;
+}
+
 .post-card__body {
   min-width: 0;
   flex: 1;

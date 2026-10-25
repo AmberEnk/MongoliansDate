@@ -115,6 +115,7 @@
   "common": {
     "loading": "Loading…",
     "continue": "Continue",
+    "cancel": "Cancel",
     "email": "Email",
     "password": "Password",
     "language": "Language",
@@ -363,7 +364,12 @@
     "myCommunitiesEmpty": "You have not started a community yet.",
     "myPosts": "Your posts",
     "myPostsEmpty": "You have not posted yet.",
-    "allCommunities": "All communities"
+    "allCommunities": "All communities",
+    "editPost": "Edit post",
+    "editCommunity": "Edit community",
+    "saveEdit": "Save changes",
+    "editWindowLeft": "{{minutes}} min left to edit",
+    "editCommunitySlugHint": "You can fix the name and about text. The short URL (c/…) stays the same."
   },
   "help": {
     "link": "Help / Report",

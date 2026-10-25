@@ -116,8 +116,16 @@ export async function createCommunity(input: { title: string; slug?: string; des
   return postJson<{ community: Community }>({ action: "createCommunity", ...input });
 }
 
+export async function editCommunity(input: { slug: string; title: string; description: string }) {
+  return postJson<{ ok: boolean; community: Community }>({ action: "editCommunity", ...input });
+}
+
 export async function createPost(input: { communitySlug: string; title: string; body: string }) {
-  return postJson<{ id: string }>({ action: "createPost", ...input });
+  return postJson<{ id: string; canEdit?: boolean; editableUntil?: string }>({ action: "createPost", ...input });
+}
+
+export async function editPost(input: { postId: string; title: string; body: string }) {
+  return postJson<{ ok: boolean; canEdit?: boolean; editableUntil?: string }>({ action: "editPost", ...input });
 }
 
 export async function createComment(postId: string, body: string) {

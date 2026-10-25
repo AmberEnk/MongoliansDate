@@ -40,6 +40,7 @@
   "common": {
     "loading": "ᠠᠴᠢᠶᠠᠯᠠᠵᠤ ᠪᠠᠢᠨ᠎ᠠ ᠃",
     "continue": "ᠦᠷᠭᠦᠯᠵᠢᠯᠡᠬᠦ",
+    "cancel": "Cancel",
     "email": "ᠢ ᠮᠧᠶᠢᠯ",
     "password": "ᠨᠢᠭᠤᠴᠠ ᠦᠭᠡ",
     "language": "ᠬᠡᠯᠡ",
@@ -287,7 +288,12 @@
     "myCommunitiesEmpty": "ᠪᠦᠯᠦᠭ ᠦᠭᠡᠢ",
     "myPosts": "ᠲᠠᠨ ᠤ ᠫᠣᠰᠲ",
     "myPostsEmpty": "ᠫᠣᠰᠲ ᠦᠭᠡᠢ",
-    "allCommunities": "ᠪᠦᠬᠦ ᠪᠦᠯᠦᠭ"
+    "allCommunities": "ᠪᠦᠬᠦ ᠪᠦᠯᠦᠭ",
+    "editPost": "Edit post",
+    "editCommunity": "Edit community",
+    "saveEdit": "Save",
+    "editWindowLeft": "{{minutes}} min",
+    "editCommunitySlugHint": "Name/about only; short URL stays."
   },
   "help": {
     "link": "ᠲᠤᠰᠠᠯᠠᠮᠵᠢ",

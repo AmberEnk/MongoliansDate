@@ -115,6 +115,7 @@
   "common": {
     "loading": "Ачааллаж байна…",
     "continue": "Үргэлжлүүлэх",
+    "cancel": "Болих",
     "email": "И-мэйл",
     "password": "Нууц үг",
     "language": "Хэл",
@@ -363,7 +364,12 @@
     "myCommunitiesEmpty": "Та одоогоор бүлэг нээгээгүй.",
     "myPosts": "Таны постууд",
     "myPostsEmpty": "Та одоогоор пост бичээгүй.",
-    "allCommunities": "Бүх бүлэг"
+    "allCommunities": "Бүх бүлэг",
+    "editPost": "Пост засах",
+    "editCommunity": "Бүлэг засах",
+    "saveEdit": "Хадгалах",
+    "editWindowLeft": "Засахад {{minutes}} мин үлдлээ",
+    "editCommunitySlugHint": "Нэр болон тайлбарыг засна. Богино холбоос (c/…) өөрчлөгдөхгүй."
   },
   "help": {
     "link": "Тусламж / Мэдүүлэх",
