@@ -560,14 +560,16 @@ async function buildSchema() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       CHECK (user_lo < user_hi),
       UNIQUE (user_lo, user_hi)
-    );
+    )
+  `);
+  await dbQuery(`
     CREATE TABLE IF NOT EXISTS forum_dm_messages (
       id BIGSERIAL PRIMARY KEY,
       thread_id BIGINT NOT NULL REFERENCES forum_dm_threads(id) ON DELETE CASCADE,
       sender_id BIGINT NOT NULL REFERENCES forum_users(id) ON DELETE CASCADE,
       body TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
+    )
   `);
   await dbQuery(`CREATE INDEX IF NOT EXISTS forum_dm_messages_thread_time ON forum_dm_messages (thread_id, created_at)`);
   const superEmails = superAdminEmails();
