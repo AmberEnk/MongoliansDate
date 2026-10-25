@@ -55,6 +55,11 @@ export default function AppShell() {
                 <NavLink to="/me" className="forum-user">
                   {user?.displayName}
                 </NavLink>
+                {user?.isSuperAdmin ? (
+                  <NavLink to="/admin/moderation" className="btn secondary">
+                    {t("forum.moderation")}
+                  </NavLink>
+                ) : null}
                 <button type="button" className="btn secondary lang-bar__logout" onClick={() => void onSignOut()}>
                   {t("common.signOut")}
                 </button>

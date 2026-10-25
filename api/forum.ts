@@ -549,6 +549,13 @@ async function buildSchema() {
   `);
   await dbQuery(`CREATE INDEX IF NOT EXISTS forum_rate_bucket_time ON forum_rate (bucket, created_at)`);
   await dbQuery(`ALTER TABLE forum_users ADD COLUMN IF NOT EXISTS banned_at TIMESTAMPTZ`);
+  await dbQuery(`ALTER TABLE forum_users ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN NOT NULL DEFAULT FALSE`);
+  const superEmails = superAdminEmails();
+  if (superEmails.length) {
+    await dbQuery(`UPDATE forum_users SET is_super_admin = TRUE WHERE lower(email) = ANY($1::text[])`, [
+      superEmails,
+    ]);
+  }
   for (const c of SEED_COMMUNITIES) {
     await dbQuery(
       `INSERT INTO forum_communities (slug, title, description, kind)
@@ -639,6 +646,90 @@ function isModerator(req: VercelRequest): boolean {
   return want.length > 0 && got === want;
 }
 
+/** Owner inbox plus optional SUPER_ADMIN_EMAILS (comma-separated). */
+function superAdminEmails(): string[] {
+  const fromEnv = String(process.env.SUPER_ADMIN_EMAILS ?? "")
+    .split(/[,;\s]+/)
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  return Array.from(new Set(["amberenk2050@gmail.com", ...fromEnv]));
+}
+
+function isSuperAdminEmail(email: string): boolean {
+  return superAdminEmails().includes(String(email ?? "").trim().toLowerCase());
+}
+
+async function canModerate(req: VercelRequest): Promise<boolean> {
+  if (isModerator(req)) return true;
+  const user = await userFromToken(req);
+  return !!(user && user.is_super_admin);
+}
+
+/** Cyrillic (incl. Mongolian ө/ү) → Latin so short links work when the display name is Mongolian. */
+const CYRILLIC_TO_LATIN: Record<string, string> = {
+  а: "a",
+  б: "b",
+  в: "v",
+  г: "g",
+  д: "d",
+  е: "e",
+  ё: "yo",
+  ж: "j",
+  з: "z",
+  и: "i",
+  й: "i",
+  к: "k",
+  л: "l",
+  м: "m",
+  н: "n",
+  о: "o",
+  ө: "o",
+  п: "p",
+  р: "r",
+  с: "s",
+  т: "t",
+  у: "u",
+  ү: "u",
+  ф: "f",
+  х: "h",
+  ц: "ts",
+  ч: "ch",
+  ш: "sh",
+  щ: "sh",
+  ъ: "",
+  ы: "y",
+  ь: "",
+  э: "e",
+  ю: "yu",
+  я: "ya",
+};
+
+function slugifyLabel(input: string): string {
+  const lower = String(input ?? "").trim().toLowerCase();
+  let out = "";
+  for (const ch of lower) {
+    if (Object.prototype.hasOwnProperty.call(CYRILLIC_TO_LATIN, ch)) out += CYRILLIC_TO_LATIN[ch];
+    else if (/[a-z0-9]/.test(ch)) out += ch;
+    else if (/[\s_./]+/.test(ch) || ch === "-") out += "-";
+  }
+  return out.replace(/-+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+}
+
+async function allocateCommunitySlug(preferred: string): Promise<string> {
+  let base = preferred;
+  if (!/^[a-z0-9-]{2,40}$/.test(base)) {
+    base = `c-${randomBytes(4).toString("hex")}`;
+  }
+  for (let i = 0; i < 30; i++) {
+    const candidate =
+      i === 0 ? base : `${base.replace(/-+$/g, "").slice(0, 36)}-${i + 1}`.replace(/-+/g, "-").slice(0, 40);
+    if (!/^[a-z0-9-]{2,40}$/.test(candidate)) continue;
+    const { rows } = await dbQuery(`SELECT 1 FROM forum_communities WHERE slug = $1 LIMIT 1`, [candidate]);
+    if (!rows[0]) return candidate;
+  }
+  return `c-${randomBytes(5).toString("hex")}`;
+}
+
 async function sendResetEmail(to: string, link: string) {
   const text = `Reset your Uchral password:\n\n${link}\n\nThis link expires in one hour. If you did not ask for this, ignore the email.`;
   const key = String(process.env.RESEND_API_KEY ?? "").trim();
@@ -712,15 +803,25 @@ function ageFromBirthdate(iso: string): number | null {
   if (m < 0 || (m === 0 && now.getUTCDate() < d.getUTCDate())) age -= 1;
   return age;
 }
-function publicUser(row: { id: number | string; email: string; display_name: string }) {
-  return { id: String(row.id), email: row.email, displayName: row.display_name };
+function publicUser(row: {
+  id: number | string;
+  email: string;
+  display_name: string;
+  is_super_admin?: boolean;
+}) {
+  return {
+    id: String(row.id),
+    email: row.email,
+    displayName: row.display_name,
+    isSuperAdmin: !!row.is_super_admin,
+  };
 }
 
 async function userFromToken(req: VercelRequest) {
   const token = headerToken(req);
   if (!token) return null;
   const { rows } = await dbQuery(
-    `SELECT u.id, u.email, u.display_name, u.banned_at
+    `SELECT u.id, u.email, u.display_name, u.banned_at, u.is_super_admin
      FROM forum_sessions s JOIN forum_users u ON u.id = s.user_id
      WHERE s.token = $1 AND s.created_at > NOW() - INTERVAL '30 days'`,
     [token]
@@ -730,6 +831,10 @@ async function userFromToken(req: VercelRequest) {
   if (user.banned_at) {
     await dbQuery(`DELETE FROM forum_sessions WHERE token = $1`, [token]);
     return null;
+  }
+  if (isSuperAdminEmail(user.email) && !user.is_super_admin) {
+    await dbQuery(`UPDATE forum_users SET is_super_admin = TRUE WHERE id = $1`, [user.id]);
+    user.is_super_admin = true;
   }
   return user;
 }
@@ -889,7 +994,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
       if (action === "reports") {
-        if (!isModerator(req)) return res.status(401).json({ error: "Unauthorized." });
+        if (!(await canModerate(req))) return res.status(401).json({ error: "Unauthorized." });
         const { rows } = await dbQuery(
           `SELECT r.id, r.reason, r.created_at, r.post_id,
                   ru.display_name AS reporter_name, ru.email AS reporter_email,
@@ -947,10 +1052,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { rows: existing } = await dbQuery(`SELECT banned_at FROM forum_users WHERE email = $1`, [email]);
       if (existing[0]?.banned_at) return res.status(403).json({ error: "This account is closed." });
       try {
+        const makeSuper = isSuperAdminEmail(email);
         const { rows } = await dbQuery(
-          `INSERT INTO forum_users (email, password_hash, display_name, birthdate)
-           VALUES ($1, $2, $3, $4) RETURNING id, email, display_name`,
-          [email, hashPassword(password), displayName, birthdate]
+          `INSERT INTO forum_users (email, password_hash, display_name, birthdate, is_super_admin)
+           VALUES ($1, $2, $3, $4, $5) RETURNING id, email, display_name, is_super_admin`,
+          [email, hashPassword(password), displayName, birthdate, makeSuper]
         );
         const token = randomBytes(32).toString("hex");
         await dbQuery(`INSERT INTO forum_sessions (token, user_id) VALUES ($1, $2)`, [token, rows[0].id]);
@@ -967,7 +1073,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const email = str(body.email, 120).toLowerCase();
       const password = String(body.password ?? "");
       const { rows } = await dbQuery(
-        `SELECT id, email, display_name, password_hash, banned_at FROM forum_users WHERE email = $1`,
+        `SELECT id, email, display_name, password_hash, banned_at, is_super_admin FROM forum_users WHERE email = $1`,
         [email]
       );
       const user = rows[0];
@@ -978,6 +1084,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(401).json({ error: "Email or password is incorrect." });
       }
       if (user.banned_at) return res.status(403).json({ error: "This account is closed." });
+      if (isSuperAdminEmail(user.email) && !user.is_super_admin) {
+        await dbQuery(`UPDATE forum_users SET is_super_admin = TRUE WHERE id = $1`, [user.id]);
+        user.is_super_admin = true;
+      }
       await dbQuery(`DELETE FROM forum_sessions WHERE user_id = $1 AND created_at < NOW() - INTERVAL '30 days'`, [user.id]);
       const token = randomBytes(32).toString("hex");
       await dbQuery(`INSERT INTO forum_sessions (token, user_id) VALUES ($1, $2)`, [token, user.id]);
@@ -1075,7 +1185,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (postAction === "banUser") {
-      if (!isModerator(req)) return res.status(401).json({ error: "Unauthorized." });
+      if (!(await canModerate(req))) return res.status(401).json({ error: "Unauthorized." });
       const userId = str(body.userId, 20);
       if (!userId) return res.status(400).json({ error: "Missing user." });
       await dbQuery(`UPDATE forum_users SET banned_at = NOW() WHERE id = $1 AND banned_at IS NULL`, [userId]);
@@ -1092,10 +1202,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       const title = str(body.title, 60);
       const description = str(body.description, 280);
-      let slug = str(body.slug, 40).toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
-      if (!slug) slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-      if (!/^[a-z0-9-]{2,40}$/.test(slug)) return res.status(400).json({ error: "Choose a short community name (letters and numbers)." });
-      if (title.length < 2) return res.status(400).json({ error: "Community needs a title." });
+      if (title.length < 2) return res.status(400).json({ error: "Community needs a name." });
+      const rawSlug = str(body.slug, 40);
+      const fromField = slugifyLabel(rawSlug);
+      const fromTitle = slugifyLabel(title);
+      // Short URL is optional: derive from the short-link field, else from the display name (incl. Cyrillic).
+      let preferred = fromField || fromTitle;
+      if (rawSlug && !fromField) {
+        return res.status(400).json({
+          error: "Short link needs Latin letters or numbers (a–z, 0–9). Community name can stay Mongolian.",
+        });
+      }
+      if (!preferred) preferred = `c-${randomBytes(4).toString("hex")}`;
+      const slug = await allocateCommunitySlug(preferred);
       try {
         await dbQuery(
           `INSERT INTO forum_communities (slug, title, description, kind, created_by)
@@ -1104,7 +1223,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         );
         return res.status(200).json({ community: { slug, title, description, kind: "city" } });
       } catch (err: any) {
-        if (String(err?.code) === "23505") return res.status(409).json({ error: "That community already exists." });
+        if (String(err?.code) === "23505") return res.status(409).json({ error: "That short link is already taken." });
         throw err;
       }
     }

@@ -2,6 +2,7 @@ export type ForumUser = {
   id: string;
   email: string;
   displayName: string;
+  isSuperAdmin?: boolean;
 };
 
 export type Community = {
