@@ -57,11 +57,11 @@ export default function AppShell() {
             </NavLink>
             {ready && loggedIn ? (
               <>
-                <NavLink to="/me" className="forum-user">
+                <NavLink to="/me" className="forum-user" title={user?.displayName}>
                   {user?.displayName}
                 </NavLink>
                 {user?.isSuperAdmin ? (
-                  <NavLink to="/admin/moderation" className="btn secondary">
+                  <NavLink to="/admin/moderation" className="btn secondary forum-mod-btn">
                     {t("forum.moderation")}
                   </NavLink>
                 ) : null}
