@@ -1470,6 +1470,11 @@ textarea {
   font-weight: 700;
   color: var(--color-sky-deep);
   text-decoration: none;
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 a.forum-user.is-active {
@@ -1719,8 +1724,9 @@ a.forum-user.is-active {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 2.15rem;
   min-width: 2.15rem;
-  flex-shrink: 0;
+  flex: 0 0 auto;
   gap: 0.1rem;
 }
 
@@ -1755,7 +1761,7 @@ a.forum-user.is-active {
   overflow: hidden;
 }
 
-.post-detail > div {
+.post-detail__body {
   min-width: 0;
   flex: 1;
 }
@@ -1952,6 +1958,10 @@ button.linkish:hover {
     grid-area: brand;
     min-width: 0;
     gap: 0;
+    position: relative;
+    z-index: 1;
+    width: max-content;
+    max-width: 100%;
   }
 
   .brand-link__text {
@@ -1966,11 +1976,19 @@ button.linkish:hover {
   .forum-topbar__actions {
     grid-area: actions;
     flex-wrap: nowrap;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .forum-user {
+    display: none;
   }
 
   .forum-topbar__actions .btn {
     padding: 0.4rem 0.7rem;
     font-size: 0.8rem;
+    flex-shrink: 0;
   }
 
   .start-community-btn {
