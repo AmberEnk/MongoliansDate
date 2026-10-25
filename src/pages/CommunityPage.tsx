@@ -4,15 +4,15 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import PostList from "../components/PostList";
 import * as forum from "../forum/api";
-import { isStillEditable, minutesLeft } from "../forum/editWindow";
 import { communityDescription, communityTitle } from "../forum/labels";
 import type { Community, ForumPost } from "../forum/types";
 
 export default function CommunityPage() {
   const { slug = "" } = useParams();
   const { t } = useTranslation();
-  const { loggedIn } = useAuth();
+  const { loggedIn, user } = useAuth();
   const nav = useNavigate();
+  const isSuperAdmin = !!user?.isSuperAdmin;
   const [community, setCommunity] = useState<Community | null>(null);
   const [posts, setPosts] = useState<ForumPost[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +23,6 @@ export default function CommunityPage() {
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [saving, setSaving] = useState(false);
-  const [tick, setTick] = useState(0);
 
   const load = useCallback(async () => {
     setError(null);
@@ -41,14 +40,8 @@ export default function CommunityPage() {
     void load();
   }, [load]);
 
-  useEffect(() => {
-    if (!community?.editableUntil || !isStillEditable(community.editableUntil)) return;
-    const timer = window.setInterval(() => setTick((n) => n + 1), 15_000);
-    return () => window.clearInterval(timer);
-  }, [community?.editableUntil]);
-
-  const canEdit = !!(community?.canEdit && isStillEditable(community.editableUntil));
-  void tick;
+  const canEdit = !!community?.canEdit;
+  const showDelete = !!(community && (community.canDelete || (isSuperAdmin && community.isUserCreated)));
 
   async function onPost(e: FormEvent) {
     e.preventDefault();
@@ -98,6 +91,18 @@ export default function CommunityPage() {
     }
   }
 
+  async function onDeleteCommunity() {
+    if (!community) return;
+    if (!window.confirm(t("forum.deleteCommunityConfirm"))) return;
+    setError(null);
+    try {
+      await forum.deleteCommunity(community.slug);
+      nav("/explore");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("forum.saveFail"));
+    }
+  }
+
   return (
     <div className="forum-page">
       <p className="chat-back">
@@ -131,12 +136,18 @@ export default function CommunityPage() {
               <>
                 <h1>{communityTitle(t, community.slug, community.title)}</h1>
                 <p className="subtle-hint">{communityDescription(t, community.slug, community.description)}</p>
-                {canEdit ? (
+                {canEdit || showDelete ? (
                   <p className="edit-actions">
-                    <button type="button" className="btn secondary" onClick={startEdit}>
-                      {t("forum.editCommunity")}
-                    </button>
-                    <span className="muted">{t("forum.editWindowLeft", { minutes: minutesLeft(community.editableUntil) })}</span>
+                    {canEdit ? (
+                      <button type="button" className="btn secondary" onClick={startEdit}>
+                        {t("forum.editCommunity")}
+                      </button>
+                    ) : null}
+                    {showDelete ? (
+                      <button type="button" className="btn secondary" onClick={() => void onDeleteCommunity()}>
+                        {t("forum.deleteCommunity")}
+                      </button>
+                    ) : null}
                   </p>
                 ) : null}
               </>
@@ -168,7 +179,7 @@ export default function CommunityPage() {
           <Link to="/login">{t("home.signIn")}</Link>
         </p>
       )}
-      <PostList posts={posts} onVoted={() => void load()} />
+      <PostList posts={posts} onVoted={() => void load()} onChanged={() => void load()} />
     </div>
   );
 }

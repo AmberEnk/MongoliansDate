@@ -366,14 +366,16 @@
     "myPostsEmpty": "Та одоогоор пост бичээгүй.",
     "allCommunities": "Бүх бүлэг",
     "editPost": "Пост засах",
+    "editComment": "Засах",
     "editCommunity": "Бүлэг засах",
     "saveEdit": "Хадгалах",
-    "editWindowLeft": "Засахад {{minutes}} мин үлдлээ",
-    "editCommunitySlugHint": "Нэр болон тайлбарыг засна. Богино холбоос (c/…) өөрчлөгдөхгүй.",
+    "editCommunitySlugHint": "Нэр болон тайлбарыг засаж болно. Богино холбоос (c/…) өөрчлөгдөхгүй.",
     "deletePost": "Пост устгах",
     "deleteComment": "Устгах",
+    "deleteCommunity": "Бүлэг устгах",
     "deletePostConfirm": "Энэ пост болон хариултуудыг устгах уу? Буцаах боломжгүй.",
-    "deleteCommentConfirm": "Энэ сэтгэгдлийг устгах уу? Буцаах боломжгүй."
+    "deleteCommentConfirm": "Энэ сэтгэгдлийг устгах уу? Буцаах боломжгүй.",
+    "deleteCommunityConfirm": "Энэ бүлэг болон бүх постуудыг устгах уу? Буцаах боломжгүй."
   },
   "help": {
     "link": "Тусламж / Репортлох",

@@ -848,25 +848,11 @@ async function requireUser(req: VercelRequest, res: VercelResponse) {
   return user;
 }
 
-const EDIT_WINDOW_MINUTES = 10;
-
-function withinEditWindow(createdAt: string | Date): boolean {
-  const t = new Date(createdAt).getTime();
-  if (Number.isNaN(t)) return false;
-  return Date.now() - t <= EDIT_WINDOW_MINUTES * 60 * 1000;
-}
-
-function editableUntilIso(createdAt: string | Date): string {
-  const t = new Date(createdAt).getTime();
-  return new Date(t + EDIT_WINDOW_MINUTES * 60 * 1000).toISOString();
-}
-
-function editMeta(createdAt: string | Date, isOwner: boolean) {
-  if (!isOwner) return { canEdit: false, editableUntil: null as string | null };
-  return {
-    canEdit: withinEditWindow(createdAt),
-    editableUntil: editableUntilIso(createdAt),
-  };
+async function canModerateOrOwn(req: VercelRequest, authorId: string | number | null | undefined): Promise<boolean> {
+  if (await canModerate(req)) return true;
+  if (authorId == null || authorId === "") return false;
+  const user = await userFromToken(req);
+  return !!(user && String(user.id) === String(authorId));
 }
 
 const POST_LIST_SQL = `
@@ -883,7 +869,6 @@ const POST_LIST_SQL = `
 function mapPost(row: any, viewerId?: string | number | null) {
   const authorId = String(row.author_id ?? "");
   const isOwner = viewerId != null && String(viewerId) === authorId;
-  const window = editMeta(row.created_at, isOwner);
   return {
     id: String(row.id),
     title: row.title,
@@ -895,8 +880,8 @@ function mapPost(row: any, viewerId?: string | number | null) {
     authorId,
     score: Number(row.score) || 0,
     commentCount: Number(row.comment_count) || 0,
-    canEdit: window.canEdit,
-    editableUntil: window.editableUntil,
+    canEdit: isOwner,
+    canDelete: isOwner,
   };
 }
 
@@ -914,7 +899,6 @@ function mapCommunity(
 ) {
   const creatorId = row.created_by != null ? String(row.created_by) : "";
   const isOwner = !!(viewerId != null && creatorId && String(viewerId) === creatorId);
-  const window = row.created_at ? editMeta(row.created_at, isOwner) : { canEdit: false, editableUntil: null };
   return {
     slug: row.slug,
     title: row.title,
@@ -922,8 +906,9 @@ function mapCommunity(
     kind: row.kind,
     postCount: row.post_count != null ? Number(row.post_count) || 0 : undefined,
     createdAt: row.created_at ?? null,
-    canEdit: window.canEdit,
-    editableUntil: window.editableUntil,
+    canEdit: isOwner,
+    canDelete: isOwner,
+    isUserCreated: !!creatorId,
   };
 }
 
@@ -1006,19 +991,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { rows } = await dbQuery(`${POST_LIST_SQL} WHERE p.id = $1`, [id]);
         if (!rows[0]) return res.status(404).json({ error: "Post not found." });
         const { rows: comments } = await dbQuery(
-          `SELECT cm.id, cm.body, cm.created_at, u.display_name AS author_name
+          `SELECT cm.id, cm.body, cm.created_at, cm.author_id, u.display_name AS author_name
            FROM forum_comments cm JOIN forum_users u ON u.id = cm.author_id
            WHERE cm.post_id = $1 AND u.banned_at IS NULL ORDER BY cm.created_at ASC`,
           [id]
         );
         return res.status(200).json({
           post: mapPost(rows[0], viewer?.id),
-          comments: comments.map((c: any) => ({
-            id: String(c.id),
-            body: c.body,
-            createdAt: c.created_at,
-            authorName: c.author_name,
-          })),
+          comments: comments.map((c: any) => {
+            const authorId = String(c.author_id ?? "");
+            const isOwner = viewer?.id != null && String(viewer.id) === authorId;
+            return {
+              id: String(c.id),
+              body: c.body,
+              createdAt: c.created_at,
+              authorName: c.author_name,
+              authorId,
+              canEdit: isOwner,
+              canDelete: isOwner,
+            };
+          }),
         });
       }
       if (action === "dating") {
@@ -1243,20 +1235,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (postAction === "deletePost") {
-      if (!(await canModerate(req))) return res.status(401).json({ error: "Unauthorized." });
       const postId = str(body.postId, 20);
       if (!postId) return res.status(400).json({ error: "Missing post." });
-      const { rows } = await dbQuery(`DELETE FROM forum_posts WHERE id = $1 RETURNING id`, [postId]);
-      if (!rows[0]) return res.status(404).json({ error: "Post not found." });
+      const { rows } = await dbQuery(`SELECT id, author_id FROM forum_posts WHERE id = $1`, [postId]);
+      const post = rows[0];
+      if (!post) return res.status(404).json({ error: "Post not found." });
+      if (!(await canModerateOrOwn(req, post.author_id))) {
+        return res.status(403).json({ error: "You can only delete your own post." });
+      }
+      await dbQuery(`DELETE FROM forum_posts WHERE id = $1`, [postId]);
       return res.status(200).json({ ok: true });
     }
 
     if (postAction === "deleteComment") {
-      if (!(await canModerate(req))) return res.status(401).json({ error: "Unauthorized." });
       const commentId = str(body.commentId, 20);
       if (!commentId) return res.status(400).json({ error: "Missing comment." });
-      const { rows } = await dbQuery(`DELETE FROM forum_comments WHERE id = $1 RETURNING id`, [commentId]);
-      if (!rows[0]) return res.status(404).json({ error: "Comment not found." });
+      const { rows } = await dbQuery(`SELECT id, author_id FROM forum_comments WHERE id = $1`, [commentId]);
+      const comment = rows[0];
+      if (!comment) return res.status(404).json({ error: "Comment not found." });
+      if (!(await canModerateOrOwn(req, comment.author_id))) {
+        return res.status(403).json({ error: "You can only delete your own comment." });
+      }
+      await dbQuery(`DELETE FROM forum_comments WHERE id = $1`, [commentId]);
+      return res.status(200).json({ ok: true });
+    }
+
+    if (postAction === "deleteCommunity") {
+      const communitySlug = str(body.slug, 40);
+      if (!communitySlug) return res.status(400).json({ error: "Missing community." });
+      const { rows } = await dbQuery(
+        `SELECT id, created_by FROM forum_communities WHERE slug = $1`,
+        [communitySlug]
+      );
+      const community = rows[0];
+      if (!community) return res.status(404).json({ error: "Community not found." });
+      if (community.created_by == null) {
+        return res.status(403).json({ error: "Built-in communities cannot be deleted." });
+      }
+      if (!(await canModerateOrOwn(req, community.created_by))) {
+        return res.status(403).json({ error: "You can only delete a community you started." });
+      }
+      await dbQuery(`DELETE FROM forum_communities WHERE id = $1`, [community.id]);
       return res.status(200).json({ ok: true });
     }
 
@@ -1314,7 +1333,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({
         id: String(created.id),
         canEdit: true,
-        editableUntil: editableUntilIso(created.created_at),
+        canDelete: true,
       });
     }
 
@@ -1324,26 +1343,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const postBody = str(body.body, 8000);
       if (!postId) return res.status(400).json({ error: "Missing post." });
       if (title.length < 3) return res.status(400).json({ error: "Write a longer title." });
-      const { rows } = await dbQuery(
-        `SELECT id, author_id, created_at FROM forum_posts WHERE id = $1`,
-        [postId]
-      );
+      const { rows } = await dbQuery(`SELECT id, author_id FROM forum_posts WHERE id = $1`, [postId]);
       const post = rows[0];
       if (!post) return res.status(404).json({ error: "Post not found." });
       if (String(post.author_id) !== String(user.id)) {
         return res.status(403).json({ error: "You can only edit your own post." });
       }
-      if (!withinEditWindow(post.created_at)) {
-        return res.status(403).json({
-          error: `Editing is only allowed for ${EDIT_WINDOW_MINUTES} minutes after posting.`,
-        });
-      }
       await dbQuery(`UPDATE forum_posts SET title = $1, body = $2 WHERE id = $3`, [title, postBody, postId]);
-      return res.status(200).json({
-        ok: true,
-        canEdit: true,
-        editableUntil: editableUntilIso(post.created_at),
-      });
+      return res.status(200).json({ ok: true, canEdit: true, canDelete: true });
     }
 
     if (postAction === "editCommunity") {
@@ -1361,11 +1368,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (community.created_by == null || String(community.created_by) !== String(user.id)) {
         return res.status(403).json({ error: "You can only edit a community you started." });
       }
-      if (!withinEditWindow(community.created_at)) {
-        return res.status(403).json({
-          error: `Editing is only allowed for ${EDIT_WINDOW_MINUTES} minutes after creating the community.`,
-        });
-      }
       await dbQuery(`UPDATE forum_communities SET title = $1, description = $2 WHERE id = $3`, [
         title,
         description,
@@ -1373,13 +1375,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ]);
       return res.status(200).json({
         ok: true,
-        community: {
-          slug: communitySlug,
-          title,
-          description,
-          canEdit: true,
-          editableUntil: editableUntilIso(community.created_at),
-        },
+        community: mapCommunity(
+          {
+            slug: communitySlug,
+            title,
+            description,
+            kind: "city",
+            created_by: community.created_by,
+            created_at: community.created_at,
+          },
+          user.id
+        ),
       });
     }
 
@@ -1392,12 +1398,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (commentBody.length < 1) return res.status(400).json({ error: "Write a comment." });
       const { rows: post } = await dbQuery(`SELECT id FROM forum_posts WHERE id = $1`, [postId]);
       if (!post[0]) return res.status(404).json({ error: "Post not found." });
-      await dbQuery(`INSERT INTO forum_comments (post_id, author_id, body) VALUES ($1, $2, $3)`, [
-        postId,
-        user.id,
-        commentBody,
-      ]);
-      return res.status(200).json({ ok: true });
+      const { rows: created } = await dbQuery(
+        `INSERT INTO forum_comments (post_id, author_id, body) VALUES ($1, $2, $3) RETURNING id`,
+        [postId, user.id, commentBody]
+      );
+      return res.status(200).json({ ok: true, id: String(created[0].id), canEdit: true, canDelete: true });
+    }
+
+    if (postAction === "editComment") {
+      const commentId = str(body.commentId, 20);
+      const commentBody = str(body.body, 2000);
+      if (!commentId) return res.status(400).json({ error: "Missing comment." });
+      if (commentBody.length < 1) return res.status(400).json({ error: "Write a comment." });
+      const { rows } = await dbQuery(`SELECT id, author_id FROM forum_comments WHERE id = $1`, [commentId]);
+      const comment = rows[0];
+      if (!comment) return res.status(404).json({ error: "Comment not found." });
+      if (String(comment.author_id) !== String(user.id)) {
+        return res.status(403).json({ error: "You can only edit your own comment." });
+      }
+      await dbQuery(`UPDATE forum_comments SET body = $1 WHERE id = $2`, [commentBody, commentId]);
+      return res.status(200).json({ ok: true, canEdit: true, canDelete: true });
     }
 
     if (postAction === "vote") {

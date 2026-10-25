@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import VoteButtons from "../components/VoteButtons";
 import * as forum from "../forum/api";
-import { isStillEditable, minutesLeft } from "../forum/editWindow";
 import type { ForumComment, ForumPost } from "../forum/types";
 
 export default function PostPage() {
@@ -21,7 +20,8 @@ export default function PostPage() {
   const [editTitle, setEditTitle] = useState("");
   const [editBody, setEditBody] = useState("");
   const [saving, setSaving] = useState(false);
-  const [tick, setTick] = useState(0);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editCommentBody, setEditCommentBody] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -37,14 +37,8 @@ export default function PostPage() {
     void load();
   }, [load]);
 
-  useEffect(() => {
-    if (!post?.editableUntil || !isStillEditable(post.editableUntil)) return;
-    const timer = window.setInterval(() => setTick((n) => n + 1), 15_000);
-    return () => window.clearInterval(timer);
-  }, [post?.editableUntil]);
-
-  const canEdit = !!(post?.canEdit && isStillEditable(post.editableUntil));
-  void tick;
+  const canEditPost = !!post?.canEdit;
+  const canDeletePost = !!(post?.canDelete || isSuperAdmin);
 
   async function onComment(e: FormEvent) {
     e.preventDefault();
@@ -98,6 +92,29 @@ export default function PostPage() {
     }
   }
 
+  function startEditComment(c: ForumComment) {
+    setEditingCommentId(c.id);
+    setEditCommentBody(c.body);
+    setError(null);
+  }
+
+  async function onSaveComment(e: FormEvent) {
+    e.preventDefault();
+    if (!editingCommentId) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await forum.editComment(editingCommentId, editCommentBody);
+      setEditingCommentId(null);
+      setEditCommentBody("");
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("forum.saveFail"));
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function onDeleteComment(commentId: string) {
     if (!window.confirm(t("forum.deleteCommentConfirm"))) return;
     setError(null);
@@ -123,12 +140,6 @@ export default function PostPage() {
             <div>
               <p className="post-card__meta">
                 {post.authorName} · {new Date(post.createdAt).toLocaleString()}
-                {canEdit ? (
-                  <>
-                    {" · "}
-                    <span className="muted">{t("forum.editWindowLeft", { minutes: minutesLeft(post.editableUntil) })}</span>
-                  </>
-                ) : null}
               </p>
               {editing ? (
                 <form className="composer edit-inline" onSubmit={(e) => void onSaveEdit(e)}>
@@ -154,12 +165,12 @@ export default function PostPage() {
                   <h1>{post.title}</h1>
                   {post.body ? <p className="post-detail-body">{post.body}</p> : null}
                   <p className="edit-actions">
-                    {canEdit ? (
+                    {canEditPost ? (
                       <button type="button" className="btn secondary" onClick={startEdit}>
                         {t("forum.editPost")}
                       </button>
                     ) : null}
-                    {isSuperAdmin ? (
+                    {canDeletePost ? (
                       <button type="button" className="btn secondary" onClick={() => void onDeletePost()}>
                         {t("forum.deletePost")}
                       </button>
@@ -175,22 +186,59 @@ export default function PostPage() {
       {error ? <p className="err">{error}</p> : null}
       <h2 className="forum-section-title">{t("forum.replies")}</h2>
       <ul className="comment-list">
-        {comments.map((c) => (
-          <li key={c.id} className="card comment-card">
-            <p className="post-card__meta">
-              {c.authorName}
-              {isSuperAdmin ? (
+        {comments.map((c) => {
+          const canEditComment = !!c.canEdit;
+          const canDeleteComment = !!(c.canDelete || isSuperAdmin);
+          return (
+            <li key={c.id} className="card comment-card">
+              <p className="post-card__meta">{c.authorName}</p>
+              {editingCommentId === c.id ? (
+                <form className="composer edit-inline" onSubmit={(e) => void onSaveComment(e)}>
+                  <label>
+                    {t("forum.yourReply")}
+                    <textarea
+                      value={editCommentBody}
+                      onChange={(e) => setEditCommentBody(e.target.value)}
+                      required
+                      rows={3}
+                    />
+                  </label>
+                  <div className="edit-actions">
+                    <button className="btn" type="submit" disabled={saving}>
+                      {t("forum.saveEdit")}
+                    </button>
+                    <button
+                      className="btn secondary"
+                      type="button"
+                      disabled={saving}
+                      onClick={() => setEditingCommentId(null)}
+                    >
+                      {t("common.cancel")}
+                    </button>
+                  </div>
+                </form>
+              ) : (
                 <>
-                  {" · "}
-                  <button type="button" className="linkish" onClick={() => void onDeleteComment(c.id)}>
-                    {t("forum.deleteComment")}
-                  </button>
+                  <p className="comment-card__body">{c.body}</p>
+                  {canEditComment || canDeleteComment ? (
+                    <p className="edit-actions">
+                      {canEditComment ? (
+                        <button type="button" className="linkish" onClick={() => startEditComment(c)}>
+                          {t("forum.editComment")}
+                        </button>
+                      ) : null}
+                      {canDeleteComment ? (
+                        <button type="button" className="linkish" onClick={() => void onDeleteComment(c.id)}>
+                          {t("forum.deleteComment")}
+                        </button>
+                      ) : null}
+                    </p>
+                  ) : null}
                 </>
-              ) : null}
-            </p>
-            <p className="comment-card__body">{c.body}</p>
-          </li>
-        ))}
+              )}
+            </li>
+          );
+        })}
       </ul>
       {loggedIn ? (
         <form className="card composer" onSubmit={(e) => void onComment(e)}>

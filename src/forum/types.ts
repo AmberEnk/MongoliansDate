@@ -13,7 +13,8 @@ export type Community = {
   postCount?: number;
   createdAt?: string | null;
   canEdit?: boolean;
-  editableUntil?: string | null;
+  canDelete?: boolean;
+  isUserCreated?: boolean;
 };
 
 export type ForumPost = {
@@ -28,7 +29,7 @@ export type ForumPost = {
   score: number;
   commentCount: number;
   canEdit?: boolean;
-  editableUntil?: string | null;
+  canDelete?: boolean;
 };
 
 export type ForumComment = {
@@ -36,6 +37,9 @@ export type ForumComment = {
   body: string;
   createdAt: string;
   authorName: string;
+  authorId?: string;
+  canEdit?: boolean;
+  canDelete?: boolean;
 };
 
 export type DatingListing = {

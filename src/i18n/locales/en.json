@@ -366,14 +366,16 @@
     "myPostsEmpty": "You have not posted yet.",
     "allCommunities": "All communities",
     "editPost": "Edit post",
+    "editComment": "Edit",
     "editCommunity": "Edit community",
     "saveEdit": "Save changes",
-    "editWindowLeft": "{{minutes}} min left to edit",
-    "editCommunitySlugHint": "You can fix the name and about text. The short URL (c/…) stays the same.",
+    "editCommunitySlugHint": "You can change the name and about text. The short URL (c/…) stays the same.",
     "deletePost": "Delete post",
     "deleteComment": "Delete",
+    "deleteCommunity": "Delete community",
     "deletePostConfirm": "Delete this post and its replies? This cannot be undone.",
-    "deleteCommentConfirm": "Delete this comment? This cannot be undone."
+    "deleteCommentConfirm": "Delete this comment? This cannot be undone.",
+    "deleteCommunityConfirm": "Delete this community and all of its posts? This cannot be undone."
   },
   "help": {
     "link": "Help / Report",

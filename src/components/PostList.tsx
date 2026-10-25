@@ -43,6 +43,10 @@ export default function PostList({
     }
   }
 
+  function canRemove(p: ForumPost) {
+    return !!(p.canDelete || isSuperAdmin);
+  }
+
   if (!posts.length) {
     return (
       <div className="forum-empty-state">
@@ -83,7 +87,7 @@ export default function PostList({
               <Link to={`/p/${p.id}`}>{t("forum.commentsCount", { count: p.commentCount })}</Link>
               {" · "}
               <Link to={`/help?post=${p.id}`}>{t("help.report")}</Link>
-              {isSuperAdmin ? (
+              {canRemove(p) ? (
                 <>
                   {" · "}
                   <button type="button" className="linkish" onClick={() => void onDeletePost(p.id)}>

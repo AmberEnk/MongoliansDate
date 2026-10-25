@@ -120,16 +120,33 @@ export async function editCommunity(input: { slug: string; title: string; descri
   return postJson<{ ok: boolean; community: Community }>({ action: "editCommunity", ...input });
 }
 
+export async function deleteCommunity(slug: string, adminToken?: string) {
+  const auth = adminToken || getToken();
+  const r = await fetch("/api/forum", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(auth ? { Authorization: `Bearer ${auth}` } : {}),
+    },
+    body: JSON.stringify({ action: "deleteCommunity", slug }),
+  });
+  if (!r.ok) throw new Error(await readError(r, "Could not delete the community."));
+}
+
 export async function createPost(input: { communitySlug: string; title: string; body: string }) {
-  return postJson<{ id: string; canEdit?: boolean; editableUntil?: string }>({ action: "createPost", ...input });
+  return postJson<{ id: string; canEdit?: boolean; canDelete?: boolean }>({ action: "createPost", ...input });
 }
 
 export async function editPost(input: { postId: string; title: string; body: string }) {
-  return postJson<{ ok: boolean; canEdit?: boolean; editableUntil?: string }>({ action: "editPost", ...input });
+  return postJson<{ ok: boolean; canEdit?: boolean; canDelete?: boolean }>({ action: "editPost", ...input });
 }
 
 export async function createComment(postId: string, body: string) {
   return postJson({ action: "createComment", postId, body });
+}
+
+export async function editComment(commentId: string, body: string) {
+  return postJson<{ ok: boolean }>({ action: "editComment", commentId, body });
 }
 
 export async function vote(postId: string, value: 1 | -1) {
