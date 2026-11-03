@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
+import LinkifiedText from "../components/LinkifiedText";
 import PostList from "../components/PostList";
 import * as forum from "../forum/api";
 import { communityDescription, communityTitle } from "../forum/labels";
@@ -204,7 +205,9 @@ export default function ProfilePage() {
                 {" · "}
                 {t("profile.commentScore", { count: c.score })}
               </p>
-              <p className="comment-card__body">{c.body}</p>
+              <p className="comment-card__body">
+                <LinkifiedText text={c.body} />
+              </p>
             </li>
           ))}
         </ul>

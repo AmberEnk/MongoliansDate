@@ -1939,6 +1939,19 @@ button.linkish:hover {
   max-width: 100%;
 }
 
+.post-detail-body a,
+.comment-card__body a,
+.post-card__excerpt a,
+.post-detail__body h1 a,
+.dm-bubble__body a,
+.dating-card p a {
+  position: relative;
+  z-index: 1;
+  color: var(--color-sky);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
 .comment-card {
   overflow: hidden;
 }

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import AuthorLink from "../components/AuthorLink";
+import LinkifiedText from "../components/LinkifiedText";
 import VoteButtons from "../components/VoteButtons";
 import * as forum from "../forum/api";
 import type { ForumComment, ForumPost } from "../forum/types";
@@ -212,7 +213,9 @@ export default function PostPage() {
               </form>
             ) : (
               <>
-                <p className="comment-card__body">{c.body}</p>
+                <p className="comment-card__body">
+                  <LinkifiedText text={c.body} />
+                </p>
                 <p className="edit-actions">
                   {loggedIn ? (
                     <button
@@ -303,8 +306,14 @@ export default function PostPage() {
                 </form>
               ) : (
                 <>
-                  <h1>{post.title}</h1>
-                  {post.body ? <p className="post-detail-body">{post.body}</p> : null}
+                  <h1>
+                    <LinkifiedText text={post.title} />
+                  </h1>
+                  {post.body ? (
+                    <p className="post-detail-body">
+                      <LinkifiedText text={post.body} />
+                    </p>
+                  ) : null}
                   <p className="edit-actions">
                     {canEditPost ? (
                       <button type="button" className="btn secondary" onClick={startEdit}>

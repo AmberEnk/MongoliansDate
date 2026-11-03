@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import AuthorLink from "../components/AuthorLink";
 import BrandLogo from "../components/BrandLogo";
+import LinkifiedText from "../components/LinkifiedText";
 import * as forum from "../forum/api";
 import type { DatingListing } from "../forum/types";
 
@@ -118,7 +119,9 @@ export default function DatingPage() {
               <AuthorLink id={row.userId} name={row.displayName} />, {row.age}
             </h2>
             <p className="muted">{row.city}</p>
-            <p>{row.intro}</p>
+            <p>
+              <LinkifiedText text={row.intro} />
+            </p>
             {row.contactHidden ? (
               <p className="muted">{t("dating.contactLocked")}</p>
             ) : row.contact ? (

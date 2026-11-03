@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import AuthorLink from "./AuthorLink";
 import BrandLogo from "./BrandLogo";
+import LinkifiedText from "./LinkifiedText";
 import VoteButtons from "./VoteButtons";
 import * as forum from "../forum/api";
 import type { ForumPost } from "../forum/types";
@@ -83,7 +84,11 @@ export default function PostList({
             <Link to={`/p/${p.id}`} className="post-card__title">
               {p.title}
             </Link>
-            {p.body ? <p className="post-card__excerpt">{p.body}</p> : null}
+            {p.body ? (
+              <p className="post-card__excerpt">
+                <LinkifiedText text={p.body} />
+              </p>
+            ) : null}
             <p className="post-card__comments">
               <Link to={`/p/${p.id}`}>{t("forum.commentsCount", { count: p.commentCount })}</Link>
               {" · "}

@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
+import LinkifiedText from "../components/LinkifiedText";
 import * as forum from "../forum/api";
 import type { DmMessage, DmThread } from "../forum/types";
 
@@ -74,7 +75,9 @@ export default function MessageThreadPage() {
         {messages.map((m) => (
           <p key={m.id} className={m.mine ? "dm-bubble dm-bubble--mine" : "dm-bubble"}>
             <span className="muted">{m.mine ? t("chat.you") : m.senderName}</span>
-            <span className="dm-bubble__body">{m.body}</span>
+            <span className="dm-bubble__body">
+              <LinkifiedText text={m.body} />
+            </span>
           </p>
         ))}
         <div ref={bottomRef} />
