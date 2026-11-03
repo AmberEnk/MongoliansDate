@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
+import AuthorLink from "./AuthorLink";
 import BrandLogo from "./BrandLogo";
 import VoteButtons from "./VoteButtons";
 import * as forum from "../forum/api";
@@ -75,7 +76,7 @@ export default function PostList({
             <p className="post-card__meta">
               <Link to={`/c/${p.communitySlug}`}>c/{p.communitySlug}</Link>
               {" · "}
-              {p.authorName}
+              <AuthorLink id={p.authorId} name={p.authorName} />
               {" · "}
               {timeAgo(p.createdAt, i18n.language)}
             </p>

@@ -18,6 +18,8 @@ import AdminModerationPage from "./pages/AdminModerationPage";
 import MinePage from "./pages/MinePage";
 import MessagesPage from "./pages/MessagesPage";
 import MessageThreadPage from "./pages/MessageThreadPage";
+import ProfilePage from "./pages/ProfilePage";
+import NotificationsPage from "./pages/NotificationsPage";
 
 export default function App() {
   return (
@@ -40,6 +42,8 @@ export default function App() {
         <Route path="/reset" element={<ResetPasswordPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/me" element={<MinePage />} />
+        <Route path="/u/:id" element={<ProfilePage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/help" element={<HelpPage />} />
         <Route path="/legal/:slug" element={<LegalPage />} />
         <Route path="/admin/supporters" element={<AdminWaitlistPage />} />

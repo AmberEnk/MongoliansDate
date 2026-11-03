@@ -5,8 +5,11 @@ import type {
   DmThread,
   DmThreadSummary,
   ForumComment,
+  ForumNotification,
   ForumPost,
   ForumUser,
+  ProfileComment,
+  PublicProfile,
 } from "./types";
 
 const TOKEN_KEY = "uchral.forumToken";
@@ -60,9 +63,12 @@ async function postJson<T>(body: Record<string, unknown>): Promise<T> {
   return r.json() as Promise<T>;
 }
 
-export async function fetchMe(): Promise<ForumUser | null> {
-  const data = await getJson<{ user: ForumUser | null }>("me");
-  return data.user;
+export async function fetchMe(): Promise<{
+  user: ForumUser | null;
+  unreadNotifications: number;
+  unreadMessages: number;
+}> {
+  return getJson("me");
 }
 
 export async function register(input: {
@@ -162,6 +168,40 @@ export async function vote(postId: string, value: 1 | -1) {
   return postJson({ action: "vote", postId, value });
 }
 
+export async function fetchProfile(id: string): Promise<{
+  profile: PublicProfile;
+  createdCommunities: Community[];
+  joinedCommunities: Community[];
+  posts: ForumPost[];
+  comments: ProfileComment[];
+}> {
+  return getJson("profile", { id });
+}
+
+export async function joinCommunity(slug: string) {
+  return postJson({ action: "joinCommunity", slug });
+}
+
+export async function followUser(userId: string, on: boolean) {
+  return postJson<{ ok: boolean; following: boolean }>({ action: "followUser", userId, on });
+}
+
+export async function updateDisplayName(displayName: string) {
+  return postJson<{ user: ForumUser }>({ action: "updateDisplayName", displayName });
+}
+
+export async function fetchNotifications(): Promise<{
+  unreadNotifications: number;
+  unreadMessages: number;
+  items: ForumNotification[];
+}> {
+  return getJson("notifications");
+}
+
+export async function markNotificationsRead() {
+  return postJson({ action: "markNotificationsRead" });
+}
+
 export async function voteComment(commentId: string, value: 1 | -1) {
   return postJson({ action: "voteComment", commentId, value });
 }
@@ -186,7 +226,7 @@ export async function sendDm(threadId: string, body: string) {
   return postJson<{ message: DmMessage }>({ action: "sendDm", threadId, body });
 }
 
-export async function report(input: { reason: string; postId?: string }) {
+export async function report(input: { reason: string; postId?: string; userId?: string }) {
   return postJson({ action: "report", ...input });
 }
 

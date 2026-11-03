@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
+import AuthorLink from "../components/AuthorLink";
 import BrandLogo from "../components/BrandLogo";
 import * as forum from "../forum/api";
 import type { DatingListing } from "../forum/types";
@@ -114,7 +115,7 @@ export default function DatingPage() {
         {listings.map((row) => (
           <li key={row.id} className="card dating-card">
             <h2>
-              {row.displayName}, {row.age}
+              <AuthorLink id={row.userId} name={row.displayName} />, {row.age}
             </h2>
             <p className="muted">{row.city}</p>
             <p>{row.intro}</p>

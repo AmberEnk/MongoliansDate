@@ -552,14 +552,49 @@ async function buildSchema() {
   await dbQuery(`ALTER TABLE forum_users ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN NOT NULL DEFAULT FALSE`);
   await dbQuery(`ALTER TABLE forum_comments ADD COLUMN IF NOT EXISTS parent_id BIGINT REFERENCES forum_comments(id) ON DELETE CASCADE`);
   await dbQuery(`
+    CREATE TABLE IF NOT EXISTS forum_name_history (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL REFERENCES forum_users(id) ON DELETE CASCADE,
+      display_name TEXT NOT NULL,
+      changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS forum_name_history_user ON forum_name_history (user_id, changed_at DESC);
+    CREATE TABLE IF NOT EXISTS forum_members (
+      user_id BIGINT NOT NULL REFERENCES forum_users(id) ON DELETE CASCADE,
+      community_id BIGINT NOT NULL REFERENCES forum_communities(id) ON DELETE CASCADE,
+      joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (user_id, community_id)
+    );
+    CREATE TABLE IF NOT EXISTS forum_follows (
+      follower_id BIGINT NOT NULL REFERENCES forum_users(id) ON DELETE CASCADE,
+      followee_id BIGINT NOT NULL REFERENCES forum_users(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (follower_id, followee_id),
+      CHECK (follower_id <> followee_id)
+    );
+    CREATE TABLE IF NOT EXISTS forum_post_follows (
+      user_id BIGINT NOT NULL REFERENCES forum_users(id) ON DELETE CASCADE,
+      post_id BIGINT NOT NULL REFERENCES forum_posts(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (user_id, post_id)
+    );
     CREATE TABLE IF NOT EXISTS forum_comment_votes (
       user_id BIGINT NOT NULL REFERENCES forum_users(id) ON DELETE CASCADE,
       comment_id BIGINT NOT NULL REFERENCES forum_comments(id) ON DELETE CASCADE,
       value INTEGER NOT NULL CHECK (value IN (-1, 1)),
       PRIMARY KEY (user_id, comment_id)
-    )
-  `);
-  await dbQuery(`
+    );
+    CREATE TABLE IF NOT EXISTS forum_notifications (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL REFERENCES forum_users(id) ON DELETE CASCADE,
+      kind TEXT NOT NULL,
+      actor_id BIGINT REFERENCES forum_users(id) ON DELETE SET NULL,
+      post_id BIGINT REFERENCES forum_posts(id) ON DELETE CASCADE,
+      comment_id BIGINT REFERENCES forum_comments(id) ON DELETE SET NULL,
+      read_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS forum_notifications_user ON forum_notifications (user_id, created_at DESC);
     CREATE TABLE IF NOT EXISTS forum_dm_threads (
       id BIGSERIAL PRIMARY KEY,
       user_lo BIGINT NOT NULL REFERENCES forum_users(id) ON DELETE CASCADE,
@@ -569,24 +604,43 @@ async function buildSchema() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       CHECK (user_lo < user_hi),
       UNIQUE (user_lo, user_hi)
-    )
-  `);
-  await dbQuery(`
+    );
     CREATE TABLE IF NOT EXISTS forum_dm_messages (
       id BIGSERIAL PRIMARY KEY,
       thread_id BIGINT NOT NULL REFERENCES forum_dm_threads(id) ON DELETE CASCADE,
       sender_id BIGINT NOT NULL REFERENCES forum_users(id) ON DELETE CASCADE,
       body TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
+    );
+    CREATE INDEX IF NOT EXISTS forum_dm_messages_thread_time ON forum_dm_messages (thread_id, created_at);
   `);
-  await dbQuery(`CREATE INDEX IF NOT EXISTS forum_dm_messages_thread_time ON forum_dm_messages (thread_id, created_at)`);
   const superEmails = superAdminEmails();
   if (superEmails.length) {
     await dbQuery(`UPDATE forum_users SET is_super_admin = TRUE WHERE lower(email) = ANY($1::text[])`, [
       superEmails,
     ]);
   }
+  await dbQuery(
+    `INSERT INTO forum_name_history (user_id, display_name, changed_at)
+     SELECT u.id, u.display_name, u.created_at FROM forum_users u
+     WHERE NOT EXISTS (SELECT 1 FROM forum_name_history h WHERE h.user_id = u.id)`
+  );
+  await dbQuery(
+    `INSERT INTO forum_members (user_id, community_id, joined_at)
+     SELECT created_by, id, created_at FROM forum_communities WHERE created_by IS NOT NULL
+     ON CONFLICT DO NOTHING`
+  );
+  await dbQuery(
+    `INSERT INTO forum_members (user_id, community_id, joined_at)
+     SELECT author_id, community_id, MIN(created_at) FROM forum_posts
+     GROUP BY author_id, community_id
+     ON CONFLICT DO NOTHING`
+  );
+  await dbQuery(
+    `INSERT INTO forum_post_follows (user_id, post_id, created_at)
+     SELECT author_id, id, created_at FROM forum_posts
+     ON CONFLICT DO NOTHING`
+  );
   for (const c of SEED_COMMUNITIES) {
     await dbQuery(
       `INSERT INTO forum_communities (slug, title, description, kind)
@@ -848,6 +902,59 @@ function publicUser(row: {
   };
 }
 
+async function joinCommunity(userId: string | number, communityId: string | number) {
+  await dbQuery(
+    `INSERT INTO forum_members (user_id, community_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+    [userId, communityId]
+  );
+}
+
+async function followPost(userId: string | number, postId: string | number) {
+  await dbQuery(
+    `INSERT INTO forum_post_follows (user_id, post_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+    [userId, postId]
+  );
+}
+
+async function notify(opts: {
+  userId: string | number;
+  kind: string;
+  actorId: string | number;
+  postId?: string | number | null;
+  commentId?: string | number | null;
+}) {
+  if (String(opts.userId) === String(opts.actorId)) return;
+  await dbQuery(
+    `INSERT INTO forum_notifications (user_id, kind, actor_id, post_id, comment_id)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [opts.userId, opts.kind, opts.actorId, opts.postId ?? null, opts.commentId ?? null]
+  );
+}
+
+async function unreadCounts(userId: string | number) {
+  const { rows: n } = await dbQuery(
+    `SELECT COUNT(*)::int AS n FROM forum_notifications WHERE user_id = $1 AND read_at IS NULL`,
+    [userId]
+  );
+  const { rows: m } = await dbQuery(
+    `SELECT COUNT(*)::int AS n
+     FROM forum_dm_threads t
+     JOIN LATERAL (
+       SELECT sender_id FROM forum_dm_messages m
+       WHERE m.thread_id = t.id
+       ORDER BY m.created_at DESC LIMIT 1
+     ) last ON TRUE
+     WHERE (t.user_lo = $1 OR t.user_hi = $1) AND last.sender_id <> $1`,
+    [userId]
+  );
+  return { unreadNotifications: n[0]?.n ?? 0, unreadMessages: m[0]?.n ?? 0 };
+}
+
+const KARMA_SQL = `(
+  COALESCE((SELECT SUM(v.value) FROM forum_votes v JOIN forum_posts p ON p.id = v.post_id WHERE p.author_id = u.id), 0)
+  + COALESCE((SELECT SUM(cv.value) FROM forum_comment_votes cv JOIN forum_comments c ON c.id = cv.comment_id WHERE c.author_id = u.id), 0)
+)::int`;
+
 async function userFromToken(req: VercelRequest) {
   const token = headerToken(req);
   if (!token) return null;
@@ -964,7 +1071,118 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method === "GET") {
       if (action === "me") {
         const user = await userFromToken(req);
-        return res.status(200).json({ user: user ? publicUser(user) : null });
+        if (!user) return res.status(200).json({ user: null, unreadNotifications: 0, unreadMessages: 0 });
+        const unread = await unreadCounts(user.id);
+        return res.status(200).json({ user: publicUser(user), ...unread });
+      }
+      if (action === "profile") {
+        const id = q(req, "id");
+        if (!/^\d+$/.test(id)) return res.status(404).json({ error: "Profile not found." });
+        const viewer = await userFromToken(req);
+        const { rows } = await dbQuery(
+          `SELECT u.id, u.display_name, u.created_at, u.banned_at, ${KARMA_SQL} AS karma,
+                  (SELECT COUNT(*) FROM forum_posts p WHERE p.author_id = u.id)::int AS post_count,
+                  (SELECT COUNT(*) FROM forum_comments c WHERE c.author_id = u.id)::int AS comment_count,
+                  (SELECT COUNT(*) FROM forum_follows f WHERE f.followee_id = u.id)::int AS follower_count,
+                  (SELECT COUNT(*) FROM forum_follows f WHERE f.follower_id = u.id)::int AS following_count
+           FROM forum_users u WHERE u.id = $1`,
+          [id]
+        );
+        const row = rows[0];
+        if (!row || row.banned_at) return res.status(404).json({ error: "Profile not found." });
+        const { rows: names } = await dbQuery(
+          `SELECT display_name, changed_at FROM forum_name_history WHERE user_id = $1 ORDER BY changed_at ASC`,
+          [id]
+        );
+        const { rows: created } = await dbQuery(
+          `SELECT c.slug, c.title, c.description, c.kind,
+                  (SELECT COUNT(*) FROM forum_posts p WHERE p.community_id = c.id)::int AS post_count
+           FROM forum_communities c WHERE c.created_by = $1 ORDER BY c.created_at DESC`,
+          [id]
+        );
+        const { rows: joined } = await dbQuery(
+          `SELECT c.slug, c.title, c.description, c.kind, m.joined_at,
+                  (SELECT COUNT(*) FROM forum_posts p WHERE p.community_id = c.id)::int AS post_count
+           FROM forum_members m
+           JOIN forum_communities c ON c.id = m.community_id
+           WHERE m.user_id = $1
+           ORDER BY m.joined_at DESC`,
+          [id]
+        );
+        const { rows: posts } = await dbQuery(
+          `${POST_LIST_SQL} WHERE p.author_id = $1 ORDER BY p.created_at DESC LIMIT 50`,
+          [id]
+        );
+        const { rows: comments } = await dbQuery(
+          `SELECT cm.id, cm.body, cm.created_at, cm.post_id, p.title AS post_title,
+                  COALESCE((SELECT SUM(v.value) FROM forum_comment_votes v WHERE v.comment_id = cm.id), 0)::int AS score
+           FROM forum_comments cm
+           JOIN forum_posts p ON p.id = cm.post_id
+           WHERE cm.author_id = $1
+           ORDER BY cm.created_at DESC LIMIT 50`,
+          [id]
+        );
+        let following = false;
+        if (viewer && String(viewer.id) !== id) {
+          const { rows: fol } = await dbQuery(
+            `SELECT 1 FROM forum_follows WHERE follower_id = $1 AND followee_id = $2`,
+            [viewer.id, id]
+          );
+          following = !!fol[0];
+        }
+        return res.status(200).json({
+          profile: {
+            id: String(row.id),
+            displayName: row.display_name,
+            createdAt: row.created_at,
+            karma: Number(row.karma) || 0,
+            postCount: Number(row.post_count) || 0,
+            commentCount: Number(row.comment_count) || 0,
+            followerCount: Number(row.follower_count) || 0,
+            followingCount: Number(row.following_count) || 0,
+            following,
+            nameHistory: names.map((n: any) => ({ displayName: n.display_name, changedAt: n.changed_at })),
+          },
+          createdCommunities: created.map(mapCommunity),
+          joinedCommunities: joined.map((r: any) => ({ ...mapCommunity(r), joinedAt: r.joined_at })),
+          posts: posts.map(mapPost),
+          comments: comments.map((c: any) => ({
+            id: String(c.id),
+            body: c.body,
+            createdAt: c.created_at,
+            postId: String(c.post_id),
+            postTitle: c.post_title,
+            score: Number(c.score) || 0,
+          })),
+        });
+      }
+      if (action === "notifications") {
+        const user = await userFromToken(req);
+        if (!user) return res.status(401).json({ error: "Sign in to continue." });
+        const { rows } = await dbQuery(
+          `SELECT n.id, n.kind, n.created_at, n.read_at, n.post_id,
+                  n.actor_id, a.display_name AS actor_name, p.title AS post_title
+           FROM forum_notifications n
+           LEFT JOIN forum_users a ON a.id = n.actor_id
+           LEFT JOIN forum_posts p ON p.id = n.post_id
+           WHERE n.user_id = $1
+           ORDER BY n.created_at DESC LIMIT 80`,
+          [user.id]
+        );
+        const unread = await unreadCounts(user.id);
+        return res.status(200).json({
+          ...unread,
+          items: rows.map((r: any) => ({
+            id: String(r.id),
+            kind: r.kind,
+            createdAt: r.created_at,
+            read: !!r.read_at,
+            actorId: r.actor_id ? String(r.actor_id) : null,
+            actorName: r.actor_name || "",
+            postId: r.post_id ? String(r.post_id) : null,
+            postTitle: r.post_title || "",
+          })),
+        });
       }
       if (action === "mine") {
         const user = await userFromToken(req);
@@ -1021,8 +1239,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         );
         if (!comm[0]) return res.status(404).json({ error: "Community not found." });
         const { rows } = await dbQuery(`${POST_LIST_SQL} WHERE c.slug = $1 ORDER BY p.created_at DESC LIMIT 80`, [slug]);
+        let joined = false;
+        if (viewer) {
+          const { rows: mem } = await dbQuery(
+            `SELECT 1 FROM forum_members m JOIN forum_communities c ON c.id = m.community_id
+             WHERE m.user_id = $1 AND c.slug = $2`,
+            [viewer.id, slug]
+          );
+          joined = !!mem[0];
+        }
         return res.status(200).json({
-          community: mapCommunity(comm[0], viewer?.id),
+          community: { ...mapCommunity(comm[0], viewer?.id), joined },
           posts: rows.map((r: any) => mapPost(r, viewer?.id)),
         });
       }
@@ -1231,6 +1458,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
            VALUES ($1, $2, $3, $4, $5) RETURNING id, email, display_name, is_super_admin`,
           [email, hashPassword(password), displayName, birthdate, makeSuper]
         );
+        await dbQuery(`INSERT INTO forum_name_history (user_id, display_name, changed_at) VALUES ($1, $2, NOW())`, [
+          rows[0].id,
+          displayName,
+        ]);
         const token = randomBytes(32).toString("hex");
         await dbQuery(`INSERT INTO forum_sessions (token, user_id) VALUES ($1, $2)`, [token, rows[0].id]);
         return res.status(200).json({ token, user: publicUser(rows[0]) });
@@ -1327,9 +1558,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       const reason = str(body.reason, 800);
       const postId = str(body.postId, 20);
+      const reportedUserId = str(body.userId, 20);
       if (reason.length < 8) return res.status(400).json({ error: "Please describe what happened." });
       const reporter = await userFromToken(req);
-      let targetId: string | null = null;
+      let targetId: string | null = reportedUserId && /^\d+$/.test(reportedUserId) ? reportedUserId : null;
       if (postId) {
         const { rows: post } = await dbQuery(`SELECT author_id FROM forum_posts WHERE id = $1`, [postId]);
         if (!post[0]) return res.status(404).json({ error: "Post not found." });
@@ -1437,9 +1669,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { rows: created } = await dbQuery(
           `INSERT INTO forum_communities (slug, title, description, kind, created_by)
            VALUES ($1, $2, $3, 'city', $4)
-           RETURNING slug, title, description, kind, created_by, created_at`,
+           RETURNING id, slug, title, description, kind, created_by, created_at`,
           [slug, title, description, user.id]
         );
+        if (created[0]) await joinCommunity(user.id, created[0].id);
         return res.status(200).json({ community: mapCommunity(created[0], user.id) });
       } catch (err: any) {
         if (String(err?.code) === "23505") return res.status(409).json({ error: "That short link is already taken." });
@@ -1462,8 +1695,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         [comm[0].id, user.id, title, postBody]
       );
       const created = rows[0];
+      const postId = created.id;
+      await joinCommunity(user.id, comm[0].id);
+      await followPost(user.id, postId);
+      const { rows: fans } = await dbQuery(`SELECT follower_id FROM forum_follows WHERE followee_id = $1`, [user.id]);
+      for (const fan of fans) {
+        await notify({ userId: fan.follower_id, kind: "follow_user_post", actorId: user.id, postId });
+      }
       return res.status(200).json({
-        id: String(created.id),
+        id: String(postId),
         canEdit: true,
         canDelete: true,
       });
@@ -1529,7 +1769,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const parentId = str(body.parentId, 20);
       const commentBody = str(body.body, 2000);
       if (commentBody.length < 1) return res.status(400).json({ error: "Write a comment." });
-      const { rows: post } = await dbQuery(`SELECT id FROM forum_posts WHERE id = $1`, [postId]);
+      const { rows: post } = await dbQuery(
+        `SELECT p.id, p.author_id, p.community_id FROM forum_posts p WHERE p.id = $1`,
+        [postId]
+      );
       if (!post[0]) return res.status(404).json({ error: "Post not found." });
       let parent: string | null = null;
       if (parentId) {
@@ -1546,9 +1789,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         `INSERT INTO forum_comments (post_id, author_id, body, parent_id) VALUES ($1, $2, $3, $4) RETURNING id`,
         [postId, user.id, commentBody, parent]
       );
+      const commentId = created[0].id;
+      await followPost(user.id, postId);
+      await joinCommunity(user.id, post[0].community_id);
+      await notify({ userId: post[0].author_id, kind: "comment", actorId: user.id, postId, commentId });
+      const { rows: watchers } = await dbQuery(
+        `SELECT user_id FROM forum_post_follows WHERE post_id = $1 AND user_id <> $2 AND user_id <> $3`,
+        [postId, user.id, post[0].author_id]
+      );
+      for (const w of watchers) {
+        await notify({ userId: w.user_id, kind: "follow_post_comment", actorId: user.id, postId, commentId });
+      }
       return res.status(200).json({
         ok: true,
-        id: String(created[0].id),
+        id: String(commentId),
         parentId: parent,
         canEdit: true,
         canDelete: true,
@@ -1572,7 +1826,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (postAction === "vote") {
       const postId = str(body.postId, 20);
+      const commentId = str(body.commentId, 20);
       const value = Number(body.value) === -1 ? -1 : 1;
+      if (commentId) {
+        const { rows: comment } = await dbQuery(`SELECT id FROM forum_comments WHERE id = $1`, [commentId]);
+        if (!comment[0]) return res.status(404).json({ error: "Comment not found." });
+        await dbQuery(
+          `INSERT INTO forum_comment_votes (user_id, comment_id, value) VALUES ($1, $2, $3)
+           ON CONFLICT (user_id, comment_id) DO UPDATE SET value = EXCLUDED.value`,
+          [user.id, commentId, value]
+        );
+        return res.status(200).json({ ok: true });
+      }
       const { rows: post } = await dbQuery(`SELECT id FROM forum_posts WHERE id = $1`, [postId]);
       if (!post[0]) return res.status(404).json({ error: "Post not found." });
       await dbQuery(
@@ -1594,6 +1859,60 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
          ON CONFLICT (user_id, comment_id) DO UPDATE SET value = EXCLUDED.value`,
         [user.id, commentId, value]
       );
+      return res.status(200).json({ ok: true });
+    }
+
+    if (postAction === "joinCommunity") {
+      const slug = str(body.slug, 40);
+      const { rows: comm } = await dbQuery(`SELECT id FROM forum_communities WHERE slug = $1`, [slug]);
+      if (!comm[0]) return res.status(404).json({ error: "Community not found." });
+      await joinCommunity(user.id, comm[0].id);
+      return res.status(200).json({ ok: true });
+    }
+
+    if (postAction === "followUser") {
+      const followeeId = str(body.userId, 20);
+      if (!/^\d+$/.test(followeeId) || followeeId === String(user.id)) {
+        return res.status(400).json({ error: "You cannot follow that profile." });
+      }
+      const { rows: target } = await dbQuery(`SELECT id, banned_at FROM forum_users WHERE id = $1`, [followeeId]);
+      if (!target[0] || target[0].banned_at) return res.status(404).json({ error: "Profile not found." });
+      const on = body.on !== false;
+      if (on) {
+        await dbQuery(
+          `INSERT INTO forum_follows (follower_id, followee_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+          [user.id, followeeId]
+        );
+        await notify({ userId: followeeId, kind: "follow", actorId: user.id });
+      } else {
+        await dbQuery(`DELETE FROM forum_follows WHERE follower_id = $1 AND followee_id = $2`, [user.id, followeeId]);
+      }
+      return res.status(200).json({ ok: true, following: on });
+    }
+
+    if (postAction === "updateDisplayName") {
+      const displayName = str(body.displayName, 40);
+      if (!/^[\p{L}\p{N} ]+$/u.test(displayName) || displayName.length < 2) {
+        return res.status(400).json({ error: "Display name can only contain letters and numbers." });
+      }
+      const { rows: cur } = await dbQuery(`SELECT display_name FROM forum_users WHERE id = $1`, [user.id]);
+      if (!cur[0]) return res.status(404).json({ error: "Profile not found." });
+      if (cur[0].display_name === displayName) return res.status(200).json({ user: publicUser({ ...user, display_name: displayName }) });
+      const { rows: recent } = await dbQuery(
+        `SELECT COUNT(*)::int AS n FROM forum_name_history
+         WHERE user_id = $1 AND changed_at > NOW() - INTERVAL '30 days'`,
+        [user.id]
+      );
+      if ((recent[0]?.n ?? 0) >= 4) {
+        return res.status(429).json({ error: "You can change your name a few times each month." });
+      }
+      await dbQuery(`UPDATE forum_users SET display_name = $1 WHERE id = $2`, [displayName, user.id]);
+      await dbQuery(`INSERT INTO forum_name_history (user_id, display_name) VALUES ($1, $2)`, [user.id, displayName]);
+      return res.status(200).json({ user: publicUser({ id: user.id, email: user.email, display_name: displayName }) });
+    }
+
+    if (postAction === "markNotificationsRead") {
+      await dbQuery(`UPDATE forum_notifications SET read_at = NOW() WHERE user_id = $1 AND read_at IS NULL`, [user.id]);
       return res.status(200).json({ ok: true });
     }
 
@@ -1698,6 +2017,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         [threadId, user.id, messageBody]
       );
       await dbQuery(`UPDATE forum_dm_threads SET updated_at = NOW() WHERE id = $1`, [threadId]);
+      await notify({ userId: otherId, kind: "message", actorId: user.id });
       return res.status(200).json({
         message: {
           id: String(created[0].id),

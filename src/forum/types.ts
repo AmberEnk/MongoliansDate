@@ -15,6 +15,8 @@ export type Community = {
   canEdit?: boolean;
   canDelete?: boolean;
   isUserCreated?: boolean;
+  joined?: boolean;
+  joinedAt?: string;
 };
 
 export type ForumPost = {
@@ -24,8 +26,8 @@ export type ForumPost = {
   createdAt: string;
   communitySlug: string;
   communityTitle: string;
+  authorId: string;
   authorName: string;
-  authorId?: string;
   score: number;
   commentCount: number;
   canEdit?: boolean;
@@ -36,14 +38,52 @@ export type ForumComment = {
   id: string;
   body: string;
   createdAt: string;
+  authorId: string;
   authorName: string;
-  authorId?: string;
   parentId?: string | null;
   score?: number;
   myVote?: number;
   canEdit?: boolean;
   canDelete?: boolean;
   replies?: ForumComment[];
+};
+
+export type ProfileComment = {
+  id: string;
+  body: string;
+  createdAt: string;
+  postId: string;
+  postTitle: string;
+  score: number;
+};
+
+export type NameChange = {
+  displayName: string;
+  changedAt: string;
+};
+
+export type PublicProfile = {
+  id: string;
+  displayName: string;
+  createdAt: string;
+  karma: number;
+  postCount: number;
+  commentCount: number;
+  followerCount: number;
+  followingCount: number;
+  following: boolean;
+  nameHistory: NameChange[];
+};
+
+export type ForumNotification = {
+  id: string;
+  kind: string;
+  createdAt: string;
+  read: boolean;
+  actorId: string | null;
+  actorName: string;
+  postId: string | null;
+  postTitle: string;
 };
 
 export type DatingListing = {

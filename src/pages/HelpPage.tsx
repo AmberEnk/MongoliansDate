@@ -9,6 +9,7 @@ export default function HelpPage() {
   const { t } = useTranslation();
   const [params] = useSearchParams();
   const postId = params.get("post")?.trim() || "";
+  const userId = params.get("user")?.trim() || "";
   const [reason, setReason] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -17,7 +18,7 @@ export default function HelpPage() {
     e.preventDefault();
     setErr(null);
     try {
-      await forum.report({ reason, postId: postId || undefined });
+      await forum.report({ reason, postId: postId || undefined, userId: userId || undefined });
       setDone(true);
     } catch (er) {
       setErr(er instanceof Error ? er.message : t("forum.saveFail"));
@@ -34,6 +35,7 @@ export default function HelpPage() {
       ) : (
         <form onSubmit={(e) => void onSubmit(e)} className="card composer">
           {postId ? <p className="muted">{t("help.aboutPost", { id: postId })}</p> : null}
+          {userId && !postId ? <p className="muted">{t("help.aboutUser", { id: userId })}</p> : null}
           <label>
             {t("help.reason")}
             <textarea value={reason} onChange={(e) => setReason(e.target.value)} required minLength={8} rows={5} />

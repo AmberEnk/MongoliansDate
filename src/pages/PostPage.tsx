@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
+import AuthorLink from "../components/AuthorLink";
 import VoteButtons from "../components/VoteButtons";
 import * as forum from "../forum/api";
 import type { ForumComment, ForumPost } from "../forum/types";
@@ -181,7 +182,9 @@ export default function PostPage() {
             onVoted={() => void load()}
           />
           <div className="comment-card__main">
-            <p className="post-card__meta">{c.authorName}</p>
+            <p className="post-card__meta">
+              <AuthorLink id={c.authorId} name={c.authorName} />
+            </p>
             {editingCommentId === c.id ? (
               <form className="composer edit-inline" onSubmit={(e) => void onSaveComment(e)}>
                 <label>
@@ -277,7 +280,7 @@ export default function PostPage() {
             <VoteButtons postId={post.id} score={post.score} onVoted={() => void load()} />
             <div className="post-detail__body">
               <p className="post-card__meta">
-                {post.authorName} · {new Date(post.createdAt).toLocaleString()}
+                <AuthorLink id={post.authorId} name={post.authorName} /> · {new Date(post.createdAt).toLocaleString()}
               </p>
               {editing ? (
                 <form className="composer edit-inline" onSubmit={(e) => void onSaveEdit(e)}>

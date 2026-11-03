@@ -6,6 +6,8 @@ type AuthState = {
   ready: boolean;
   loggedIn: boolean;
   user: ForumUser | null;
+  unreadNotifications: number;
+  unreadMessages: number;
   refresh: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   register: (input: { email: string; password: string; displayName: string; birthdate: string }) => Promise<void>;
@@ -17,17 +19,26 @@ const Ctx = createContext<AuthState | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [user, setUser] = useState<ForumUser | null>(null);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   const refresh = useCallback(async () => {
     try {
       if (!forum.getToken()) {
         setUser(null);
+        setUnreadNotifications(0);
+        setUnreadMessages(0);
         return;
       }
-      setUser(await forum.fetchMe());
+      const me = await forum.fetchMe();
+      setUser(me.user);
+      setUnreadNotifications(me.unreadNotifications);
+      setUnreadMessages(me.unreadMessages);
     } catch {
       forum.setToken(null);
       setUser(null);
+      setUnreadNotifications(0);
+      setUnreadMessages(0);
     } finally {
       setReady(true);
     }
@@ -37,10 +48,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     void refresh();
   }, [refresh]);
 
+  useEffect(() => {
+    if (!user) return;
+    const t = window.setInterval(() => void refresh(), 45000);
+    return () => window.clearInterval(t);
+  }, [user, refresh]);
+
   const login = useCallback(async (email: string, password: string) => {
     const r = await forum.login(email, password);
     forum.setToken(r.token);
     setUser(r.user);
+    const me = await forum.fetchMe();
+    setUser(me.user);
+    setUnreadNotifications(me.unreadNotifications);
+    setUnreadMessages(me.unreadMessages);
   }, []);
 
   const register = useCallback(
@@ -48,6 +69,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const r = await forum.register(input);
       forum.setToken(r.token);
       setUser(r.user);
+      const me = await forum.fetchMe();
+      setUser(me.user);
+      setUnreadNotifications(me.unreadNotifications);
+      setUnreadMessages(me.unreadMessages);
     },
     []
   );
@@ -55,11 +80,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(async () => {
     await forum.logout();
     setUser(null);
+    setUnreadNotifications(0);
+    setUnreadMessages(0);
   }, []);
 
   const v = useMemo(
-    () => ({ ready, loggedIn: !!user, user, refresh, login, register, logout }),
-    [ready, user, refresh, login, register, logout]
+    () => ({
+      ready,
+      loggedIn: !!user,
+      user,
+      unreadNotifications,
+      unreadMessages,
+      refresh,
+      login,
+      register,
+      logout,
+    }),
+    [ready, user, unreadNotifications, unreadMessages, refresh, login, register, logout]
   );
 
   return <Ctx.Provider value={v}>{children}</Ctx.Provider>;

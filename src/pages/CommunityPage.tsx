@@ -14,6 +14,7 @@ export default function CommunityPage() {
   const nav = useNavigate();
   const isSuperAdmin = !!user?.isSuperAdmin;
   const [community, setCommunity] = useState<Community | null>(null);
+  const [joining, setJoining] = useState(false);
   const [posts, setPosts] = useState<ForumPost[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [title, setTitle] = useState("");
@@ -153,6 +154,24 @@ export default function CommunityPage() {
               </>
             )}
           </div>
+          {loggedIn && !community.joined ? (
+            <button
+              type="button"
+              className="btn secondary"
+              disabled={joining}
+              onClick={() => {
+                setJoining(true);
+                void forum
+                  .joinCommunity(slug)
+                  .then(() => load())
+                  .finally(() => setJoining(false));
+              }}
+            >
+              {t("profile.joinCommunity")}
+            </button>
+          ) : loggedIn && community.joined ? (
+            <p className="muted">{t("profile.joined")}</p>
+          ) : null}
         </header>
       ) : null}
       {error ? <p className="err">{error}</p> : null}

@@ -54,8 +54,12 @@ export default function VoteButtons({ postId, commentId, score, myVote = 0, comp
     }
   }
 
+  const cls = ["vote-col", compact || commentId ? "vote-col--compact" : "", commentId ? "vote-col--inline" : ""]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className={compact ? "vote-col vote-col--compact" : "vote-col"}>
+    <div className={cls}>
       <button
         type="button"
         className={`vote-btn vote-btn--like${myVote === 1 ? " is-active" : ""}`}

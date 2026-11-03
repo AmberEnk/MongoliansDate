@@ -6,7 +6,7 @@ import InstallPrompt from "./InstallPrompt";
 import BrandLogo from "./BrandLogo";
 
 export default function AppShell() {
-  const { loggedIn, logout, user, ready } = useAuth();
+  const { loggedIn, logout, user, ready, unreadNotifications, unreadMessages } = useAuth();
   const { t } = useTranslation();
   const nav = useNavigate();
 
@@ -57,7 +57,15 @@ export default function AppShell() {
             </NavLink>
             {ready && loggedIn ? (
               <>
-                <NavLink to="/me" className="forum-user" title={user?.displayName}>
+                <NavLink to="/notifications" className="forum-icon-link" title={t("profile.notifications")}>
+                  {t("profile.bell")}
+                  {unreadNotifications ? <span className="forum-badge">{unreadNotifications}</span> : null}
+                </NavLink>
+                <NavLink to="/messages" className="forum-icon-link" title={t("profile.messages")}>
+                  {t("profile.inbox")}
+                  {unreadMessages ? <span className="forum-badge">{unreadMessages}</span> : null}
+                </NavLink>
+                <NavLink to={user ? `/u/${user.id}` : "/me"} className="forum-user" title={user?.displayName}>
                   {user?.displayName}
                 </NavLink>
                 {user?.isSuperAdmin ? (
