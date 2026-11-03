@@ -68,7 +68,8 @@
     "resetInvalid": "ᠬᠣᠯᠪᠣᠭ᠎ᠠ ᠪᠤᠷᠤᠭᠤ",
     "confirmPassword": "ᠳᠠᠪᠲᠠᠬᠤ",
     "passwordMismatch": "ᠲᠠᠠᠷᠠᠬᠤ ᠦᠭᠡᠢ",
-    "savePassword": "ᠬᠠᠳᠠᠭᠠᠯᠠᠬᠤ"
+    "savePassword": "ᠬᠠᠳᠠᠭᠠᠯᠠᠬᠤ",
+    "failed": "ᠨᠡᠪᠲᠡᠷᠴᠦ ᠴᠢᠳᠠᠭᠰᠠᠨ ᠦᠭᠡᠢ"
   },
   "register": {
     "title": "ᠪᠦᠷᠢᠳᠬᠡᠯ ᠪᠠᠢᠭᠤᠯᠬᠤ",
@@ -228,6 +229,7 @@
     "waitlistEmailError": "ᠵᠥᠪ ᠢ ᠮᠧᠶᠢᠯ ᠣᠷᠤᠭᠤᠯᠤᠨ᠎ᠠ ᠤᠤ ᠃",
     "waitlistDetailsError": "Gender ᠪᠣᠯᠣᠨ age (18+) ᠢ ᠪᠦᠷᠢᠨ ᠣᠷᠤᠭᠤᠯᠤᠨ᠎ᠠ ᠤᠤ ᠃",
     "waitlistServerError": "ᠣᠳᠣᠬᠠᠨᠳᠠ ᠬᠠᠳᠠᠭᠠᠯᠠᠬᠤ ᠪᠣᠯᠣᠮᠵᠢ ᠦᠭᠡᠢ ᠃ ᠳᠠᠬᠢᠨ ᠣᠷᠣᠯᠳᠣᠨ᠎ᠠ ᠤᠤ ᠃",
+    "waitlistTextError": "ᠤᠯᠤᠰ ᠪᠣᠯᠤᠨ ᠬᠣᠲᠠ ᠳ᠋ᠤ ᠦᠰᠦᠭ ᠲᠣᠭ᠎ᠠ ᠪᠠᠢᠬᠤ ᠪᠣᠯᠤᠨ᠎ᠠ ᠃",
     "waitlistDevProxyHint": "Local dev has no /api server. Add VITE_DEV_API_ORIGIN=https://uchral.net to .env.development.local (then restart npm run dev), or run vercel dev.",
     "visualsTitle": "ᠲᠠᠯᠠ ᠬᠡᠬᠡᠷ ᠡᠴᠡ ᠬᠣᠲᠠ ᠬᠦᠷᠲᠡᠯ᠎ᠡ",
     "visualsIntro": "ᠲᠠᠯᠠ ᠨᠤᠲᠤᠭ ᠤᠨ ᠬᠡᠭᠡ ᠮᠠᠶᠢᠭ ᠰᠠᠨᠠᠭ᠎ᠠ ᠲᠠᠶ ᠴᠢᠮᠡᠭᠯᠡᠯ ᠂ ᠭᠡᠷᠯᠡᠯᠲᠡ ᠶᠢ ᠢᠯᠡᠷᠡᠬᠦ ᠬᠣᠭᠣᠷᠣᠨᠳᠤ ᠤᠶᠠᠯᠳᠤᠭᠰᠠᠨ ᠪᠥᠭᠵᠢ ᠂ ᠵᠢᠱᠢᠶᠡᠯᠪᠦᠷᠢ ᠵᠢᠷᠤᠭ — ᠮᠣᠩᠭᠣᠯ ᠤᠨ ᠪᠠᠢᠭᠠᠯᠢ ᠂ ᠤᠲᠠᠰ ᠠᠰᠢᠭᠯᠠᠵᠤ ᠪᠠᠢᠭ᠎ᠠ ᠬᠣᠶᠠᠷ ᠬᠦᠮᠦᠨ (ᠨᠢᠭᠤᠷ ᠢ ᠬᠠᠷᠠᠭᠤᠯᠤᠭᠰᠠᠨ ᠦᠭᠡᠢ) ᠂ ᠲᠠᠯᠠ ᠳᠡᠭᠡᠷ ᠦᠨ ᠤᠯᠠᠮᠵᠢᠯᠠᠯᠲᠠ ᠬᠤᠪᠢᠴᠠᠭᠠᠨ ᠂ ᠭᠠᠳᠠᠭᠠᠳᠤ ᠳᠤ ᠣᠷᠴᠢᠨ ᠦᠶ᠎ᠡ ᠶᠢᠨ ᠬᠣᠰ ᠂ ᠭᠡᠷᠯᠡᠯᠲᠡ ᠶᠢᠨ ᠪᠥᠭᠵᠢ ᠂ ᠫᠠᠷᠢᠰ ᠂ ᠤᠯᠠᠭᠠᠨᠪᠠᠭᠠᠲᠤᠷ ᠬᠣᠲᠠ ᠶᠢᠨ ᠲᠥᠷᠦᠭᠰᠡᠨ ᠦᠵᠡᠯ ᠃",

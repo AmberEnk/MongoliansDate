@@ -175,30 +175,35 @@ export default function CommunityPage() {
         </header>
       ) : null}
       {error ? <p className="err">{error}</p> : null}
-      {loggedIn ? (
-        <form className="card composer" onSubmit={(e) => void onPost(e)}>
-          <h2 className="landing-waitlist-card__title">{t("forum.askOrPost")}</h2>
-          <label>
-            {t("forum.postTitle")}
-            <input value={title} onChange={(e) => setTitle(e.target.value)} required minLength={3} />
-          </label>
-          <label>
-            {t("forum.postBody")}
-            <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} />
-          </label>
-          <button className="btn" type="submit" disabled={posting}>
-            {t("forum.publish")}
-          </button>
-        </form>
-      ) : (
-        <p className="card guest-note">
-          {t("forum.guestRead")}{" "}
-          <Link to="/register">{t("register.signUp")}</Link>
-          {" · "}
-          <Link to="/login">{t("home.signIn")}</Link>
-        </p>
-      )}
-      <PostList posts={posts} onVoted={() => void load()} onChanged={() => void load()} />
+      {!community && !error ? <p className="muted">{t("common.loading")}</p> : null}
+      {community ? (
+        <>
+          {loggedIn ? (
+            <form className="card composer" onSubmit={(e) => void onPost(e)}>
+              <h2 className="landing-waitlist-card__title">{t("forum.askOrPost")}</h2>
+              <label>
+                {t("forum.postTitle")}
+                <input value={title} onChange={(e) => setTitle(e.target.value)} required minLength={3} />
+              </label>
+              <label>
+                {t("forum.postBody")}
+                <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} />
+              </label>
+              <button className="btn" type="submit" disabled={posting}>
+                {t("forum.publish")}
+              </button>
+            </form>
+          ) : (
+            <p className="card guest-note">
+              {t("forum.guestRead")}{" "}
+              <Link to="/register">{t("register.signUp")}</Link>
+              {" · "}
+              <Link to="/login">{t("home.signIn")}</Link>
+            </p>
+          )}
+          <PostList posts={posts} onVoted={() => void load()} onChanged={() => void load()} />
+        </>
+      ) : null}
     </div>
   );
 }

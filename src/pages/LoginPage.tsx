@@ -19,7 +19,7 @@ export default function LoginPage() {
       await login(email, password);
       nav("/");
     } catch (er) {
-      setErr(er instanceof Error ? er.message : "Failed");
+      setErr(er instanceof Error ? er.message : t("login.failed"));
     }
   }
 

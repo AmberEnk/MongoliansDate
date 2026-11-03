@@ -14,6 +14,7 @@ export default function DatingPage() {
   const nav = useNavigate();
   const [listings, setListings] = useState<DatingListing[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [city, setCity] = useState("");
   const [age, setAge] = useState("28");
   const [intro, setIntro] = useState("");
@@ -25,6 +26,8 @@ export default function DatingPage() {
       setListings(await forum.fetchDating());
     } catch (e) {
       setError(e instanceof Error ? e.message : t("forum.loadFail"));
+    } finally {
+      setLoading(false);
     }
   }, [t]);
 
@@ -111,6 +114,7 @@ export default function DatingPage() {
       )}
 
       {error ? <p className="err">{error}</p> : null}
+      {loading ? <p className="muted">{t("common.loading")}</p> : null}
 
       <ul className="dating-list">
         {listings.map((row) => (
@@ -148,7 +152,7 @@ export default function DatingPage() {
           </li>
         ))}
       </ul>
-      {!listings.length ? (
+      {!loading && !listings.length ? (
         <div className="forum-empty-state">
           <BrandLogo size={120} decorative />
           <p className="muted">{t("dating.empty")}</p>
